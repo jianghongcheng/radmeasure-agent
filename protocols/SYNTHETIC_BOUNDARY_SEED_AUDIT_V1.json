@@ -1,0 +1,15 @@
+{
+  "protocol": "synthetic_boundary_seed_audit_v1",
+  "frozen_on": "2026-08-24",
+  "selection_source": "synthetic_selective_phase_extended_v1_summary.csv produced with simulator seed 20260824",
+  "selection_rule": "Select one low-precision/no-op-side cell and one high-precision/apply-all-side cell whose original probability of beating the best global action equals the registered 0.80 reliability boundary. Within each side choose the smallest cluster count, breaking ties by lower label noise and then lower precision.",
+  "selected_conditions": [
+    {"side": "no_op", "proposal_precision": 0.2, "label_noise": 0.1, "cluster_count": 100},
+    {"side": "apply_all", "proposal_precision": 0.8, "label_noise": 0.2, "cluster_count": 176}
+  ],
+  "new_simulator_seeds": [20260825, 20260826, 20260827, 20260828, 20260829, 20260830, 20260831, 20260832, 20260833, 20260834],
+  "repeats_per_seed": 40,
+  "unchanged_parameters": {"samples_per_cluster": 40, "model": "logistic advantage-sign selector", "split": "60/20/20 cluster-disjoint", "reliable_win_threshold": 0.8},
+  "reported_outputs": ["mean margin by seed", "win probability by seed", "between-seed mean and SD", "fraction of new seeds classified reliable"],
+  "interpretation": "This is a seed-repeatability audit of mechanically selected existing boundary cells, not a new prospective real-domain validation."
+}

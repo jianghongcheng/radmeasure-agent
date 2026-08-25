@@ -1,0 +1,35 @@
+[
+  {
+    "evidence_id": "hvangleest-2025-data",
+    "title": "HVAngleEst: A Dataset for End-to-end Automated Hallux Valgus Angle Measurement",
+    "text": "The open research dataset contains full foot radiographs with foot boxes, great-toe, first-metatarsal and second-metatarsal line annotations, plus HVA and IMA targets. The published data record describes 1,392 images and 1,598 annotated feet.",
+    "source_url": "https://doi.org/10.1038/s41597-025-05261-9",
+    "evidence_type": "literature",
+    "metadata": {"topic": "dataset", "measurement": "HVA IMA", "year": "2025"}
+  },
+  {
+    "evidence_id": "hvangleest-2025-measurement",
+    "title": "HVAngleEst annotation and angle reconstruction protocol",
+    "text": "HVA is reconstructed from the acute angle between the annotated great-toe axis and first-metatarsal axis. IMA is reconstructed from the acute angle between the first- and second-metatarsal axes. Normalized endpoints must be converted using the source image width and height before angle calculation.",
+    "source_url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12125228/",
+    "evidence_type": "measurement_protocol",
+    "metadata": {"topic": "measurement", "measurement": "HVA IMA", "year": "2025"}
+  },
+  {
+    "evidence_id": "geomed-artifact-audit",
+    "title": "GeoMed locked prediction artifact audit",
+    "text": "GeoMed Copilot replays a hash-verified three-seed MedImageInsight spatial-line prediction artifact on a locked patient-disjoint unilateral test set. The replay is distinguished explicitly from live encoder inference and from annotation-geometry reconstruction.",
+    "source_url": "local://data/processed/hvangleest/medimageinsight_locked_test_eval.json",
+    "evidence_type": "system_audit",
+    "metadata": {"topic": "evaluation", "measurement": "HVA IMA", "year": "2026"}
+  },
+  {
+    "evidence_id": "aasce-2019-challenge",
+    "title": "AASCE MICCAI 2019 Challenge",
+    "text": "The Accurate Automated Spinal Curvature Estimation challenge evaluates Cobb-angle estimation from anterior-posterior spine radiographs and provides a standardized public research benchmark.",
+    "source_url": "https://aasce19.github.io/",
+    "evidence_type": "benchmark",
+    "metadata": {"topic": "dataset", "measurement": "Cobb", "year": "2019"}
+  }
+]
+

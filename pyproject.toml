@@ -1,0 +1,32 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "radmeasure"
+version = "0.4.0"
+description = "Verifiable multimodal execution for protocol-driven radiographic measurements"
+requires-python = ">=3.10"
+dependencies = []
+
+[project.optional-dependencies]
+api = ["fastapi>=0.115,<1", "uvicorn>=0.30,<1", "httpx>=0.28,<1", "python-multipart>=0.0.9,<1"]
+mcp = []
+ml = ["numpy>=1.24"]
+inference = ["torch>=2.4,<3", "torchvision>=0.19,<1", "Pillow>=10,<12", "pydicom>=3,<4"]
+dev = ["pytest>=8"]
+prod = ["psycopg[binary]>=3.2,<4", "boto3>=1.35,<2", "pydicom>=3,<4"]
+
+[project.scripts]
+geomed-copilot = "geomed_copilot.cli:main"
+geomed-mcp = "geomed_copilot.mcp_server:main"
+geomed-worker = "geomed_copilot.worker:main"
+radmeasure = "geomed_copilot.cli:main"
+radmeasure-mcp = "geomed_copilot.mcp_server:main"
+radmeasure-worker = "geomed_copilot.worker:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

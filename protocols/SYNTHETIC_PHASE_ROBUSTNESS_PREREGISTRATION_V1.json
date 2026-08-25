@@ -1,0 +1,51 @@
+{
+  "protocol": "synthetic_phase_robustness_v1",
+  "frozen_on": "2026-08-24",
+  "purpose": "Test whether the selective-correction phase is stable to simulator seeds, useful-advantage definitions, and candidate-set size without reading real-domain outcomes.",
+  "shared": {
+    "simulator": "cluster-disjoint logistic advantage selector",
+    "split": "60% train clusters / 20% calibration clusters / 20% test clusters",
+    "samples_per_cluster": 40,
+    "calibration": "maximize realized counterfactual gain with conservative high-threshold tie breaking",
+    "comparators": ["no_op", "always_apply_best_scored_candidate"],
+    "reliable_win": "positive mean margin and win probability >= 0.80 against both comparators"
+  },
+  "seed_stability": {
+    "simulator_seeds": [20260824, 20260825, 20260826, 20260827, 20260828, 20260829, 20260830, 20260831, 20260832, 20260833],
+    "repeats_per_seed": 40,
+    "conditions": [
+      {"proposal_precision": 0.5, "label_noise": 0.2, "cluster_count": 30},
+      {"proposal_precision": 0.5, "label_noise": 0.2, "cluster_count": 100}
+    ],
+    "outputs": ["mean_margin_by_seed", "win_probability_by_seed", "between_seed_mean_and_sd", "classification_consistency"]
+  },
+  "advantage_definition_sensitivity": {
+    "simulator_seed": 20260824,
+    "repeats": 40,
+    "proposal_precisions": [0.3, 0.4, 0.5, 0.6, 0.7],
+    "label_noises": [0.0, 0.2, 0.4],
+    "cluster_counts": [30, 100],
+    "advantage_magnitude": "absolute Normal(0.75 + 0.35 * abs(stable signal), 0.35), clipped at 0.05",
+    "definitions": {
+      "strict": "advantage > 0",
+      "meaningful": "advantage > 0.5",
+      "rank": "top 20% advantage within each training partition"
+    },
+    "evaluation_utility": "continuous realized advantage, unchanged across definitions",
+    "outputs": ["reliable_region", "pairwise_region_jaccard", "directional_agreement"]
+  },
+  "candidate_distribution": {
+    "simulator_seed": 20260824,
+    "repeats": 40,
+    "proposal_precisions": [0.3, 0.5, 0.7],
+    "label_noises": [0.0, 0.2, 0.4],
+    "cluster_counts": [30, 100],
+    "candidate_counts": [2, 5, 10, 20],
+    "candidate_dependence": ["independent", "shared_case"],
+    "shared_case_definition": "candidate signs share a case-level random effect while preserving marginal proposal precision",
+    "action": "choose the highest-scored candidate or STOP",
+    "apply_all_definition": "always execute the highest-scored candidate without STOP",
+    "outputs": ["margin_over_no_op", "margin_over_apply_all", "win_probabilities", "candidate_count_interaction"]
+  },
+  "interpretation_rule": "Robustness is supported only for prespecified cells and summaries. No grid, threshold, candidate count, seed, or success criterion may be changed after execution; any extension is exploratory."
+}

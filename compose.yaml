@@ -1,0 +1,123 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: geomed
+      POSTGRES_USER: geomed
+      POSTGRES_PASSWORD: geomed-local
+    volumes:
+      - geomed-postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U geomed -d geomed"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+
+  minio:
+    image: minio/minio:latest
+    command: server /data --console-address :9001
+    environment:
+      MINIO_ROOT_USER: geomed-local
+      MINIO_ROOT_PASSWORD: geomed-local-secret
+    volumes:
+      - geomed-minio:/data
+    ports:
+      - "127.0.0.1:9001:9001"
+
+  orthanc:
+    image: orthancteam/orthanc:latest
+    environment:
+      DICOM_WEB_PLUGIN_ENABLED: "true"
+      ORTHANC__NAME: GeoMed Research PACS
+      ORTHANC__AUTHENTICATION_ENABLED: "true"
+      ORTHANC__REGISTERED_USERS: '{"geomed":"geomed-local"}'
+      ORTHANC__DICOM_WEB__ROOT: /dicom-web/
+      ORTHANC__HTTP_SERVER_ENABLED: "true"
+      ORTHANC__REMOTE_ACCESS_ALLOWED: "true"
+      ORTHANC__HTTP_HEADERS: '{"Access-Control-Allow-Origin":"http://127.0.0.1:3000","Access-Control-Allow-Credentials":"true","Access-Control-Allow-Headers":"Authorization,Content-Type","Access-Control-Allow-Methods":"GET,POST,PUT,DELETE,OPTIONS"}'
+    volumes:
+      - geomed-orthanc:/var/lib/orthanc/db
+    ports:
+      - "127.0.0.1:8042:8042"
+      - "127.0.0.1:4242:4242"
+
+  ohif:
+    image: ohif/app:latest
+    volumes:
+      - ./config/ohif/app-config.js:/usr/share/nginx/html/app-config.js:ro
+    ports:
+      - "127.0.0.1:3000:80"
+    depends_on:
+      - orthanc
+
+  api:
+    build: .
+    environment:
+      GEOMED_EVAL_REPLAY: "1"
+      GEOMED_DATABASE_URL: postgresql://geomed:geomed-local@postgres:5432/geomed
+      GEOMED_S3_ENDPOINT: http://minio:9000
+      GEOMED_S3_BUCKET: geomed-artifacts
+      GEOMED_S3_ACCESS_KEY: geomed-local
+      GEOMED_S3_SECRET_KEY: geomed-local-secret
+      GEOMED_API_KEYS: '{"viewer-local":{"name":"local-viewer","role":"viewer"},"operator-local":{"name":"local-operator","role":"operator"},"reviewer-local":{"name":"local-reviewer","role":"admin"}}'
+      GEOMED_ORTHANC_URL: http://orthanc:8042
+      GEOMED_ORTHANC_USERNAME: geomed
+      GEOMED_ORTHANC_PASSWORD: geomed-local
+    ports:
+      - "127.0.0.1:8000:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      minio:
+        condition: service_started
+    restart: on-failure
+
+  inference:
+    build:
+      context: .
+      dockerfile: Dockerfile.inference
+    command: ["uvicorn", "geomed_copilot.inference_api:create_app", "--factory", "--host", "0.0.0.0", "--port", "8100"]
+    environment:
+      GEOMED_INFERENCE_TOKEN: inference-local-secret
+      GEOMED_RESNET_CHECKPOINT: /models/best_resnet.pt
+      GEOMED_LANDMARK_CHECKPOINT: /models/hrnet_lm.pt
+      GEOMED_REPAIR_CHECKPOINT: /models/repair_mlp_verifier.pt
+      GEOMED_MODEL_DEVICE: cpu
+      GEOMED_S3_ENDPOINT: http://minio:9000
+      GEOMED_S3_ACCESS_KEY: geomed-local
+      GEOMED_S3_SECRET_KEY: geomed-local-secret
+    volumes:
+      - "${RADMEASURE_RESNET_CHECKPOINT:-./models/best_resnet.pt}:/models/best_resnet.pt:ro"
+      - "${RADMEASURE_LANDMARK_CHECKPOINT:-./models/hrnet_lm.pt}:/models/hrnet_lm.pt:ro"
+      - "${RADMEASURE_REPAIR_CHECKPOINT:-./models/repair_mlp_verifier.pt}:/models/repair_mlp_verifier.pt:ro"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8100/health')"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    restart: on-failure
+
+  worker:
+    build: .
+    command: ["geomed-worker", "--poll-seconds", "0.25"]
+    environment:
+      GEOMED_EVAL_REPLAY: "1"
+      GEOMED_DATABASE_URL: postgresql://geomed:geomed-local@postgres:5432/geomed
+      GEOMED_INFERENCE_URL: http://inference:8100
+      GEOMED_INFERENCE_TOKEN: inference-local-secret
+      GEOMED_REPAIR_MODEL_ID: hvangle-hrnet-repair
+    depends_on:
+      postgres:
+        condition: service_healthy
+      inference:
+        condition: service_healthy
+    restart: on-failure
+    healthcheck:
+      disable: true
+    deploy:
+      replicas: 2
+
+volumes:
+  geomed-postgres:
+  geomed-minio:
+  geomed-orthanc:

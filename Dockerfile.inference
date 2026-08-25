@@ -1,0 +1,10 @@
+FROM python:3.11-slim
+
+ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1
+WORKDIR /app
+COPY pyproject.toml README.md ./
+COPY src ./src
+COPY data ./data
+RUN pip install --no-cache-dir --extra-index-url https://download.pytorch.org/whl/cpu '.[api,prod,inference]'
+EXPOSE 8100
+CMD ["uvicorn", "geomed_copilot.inference_api:create_app", "--factory", "--host", "0.0.0.0", "--port", "8100"]

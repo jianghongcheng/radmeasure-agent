@@ -1,0 +1,42 @@
+{
+  "status": "frozen_before_extended_simulation",
+  "date": "2026-08-24",
+  "purpose": "Extend support without tuning simulator parameters to observed real-domain gains.",
+  "known_limitation": "The analyst already knows the historical real-domain outcomes; this seal controls new simulator and analysis degrees of freedom but cannot create temporal blinding retroactively.",
+  "frozen_real_coordinates_without_outcomes": [
+    {"domain": "X-ray", "clusters": 176, "proposal_precision": 0.4005735359014073, "advantage_noise_primary": 0.4759825327510917, "noise_sensitivity": [0.4, 0.6, 0.6219512195121951]},
+    {"domain": "Spider weak", "clusters": 20, "proposal_precision": 0.49279538904899134, "advantage_noise_primary": 0.0},
+    {"domain": "Spider clean", "clusters": 116, "proposal_precision": 0.14655172413793102, "advantage_noise_primary": 0.0}
+  ],
+  "frozen_extended_grid": {
+    "proposal_precision": [0.1, 0.15, 0.2, 0.25, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8],
+    "advantage_label_flip_probability": [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.65, 0.7],
+    "cluster_count": [10, 20, 30, 100, 116, 176, 300],
+    "samples_per_cluster": 40,
+    "repeats": 40,
+    "seed": 20260824
+  },
+  "frozen_simulator": {
+    "source_sha256_before_cli_only_extension": "3eab095d972495a6969e493ebdfb3798fef0ce9b5090f33c4f1bc718dc67822a",
+    "rule": "The data-generating process, signal strength, cluster-effect scale, feature count, classifier, train/calibration/test split, threshold selection, and reward definition remain unchanged. Only grid and output-path CLI parameters may be added.",
+    "samples_per_cluster_not_tuned": 40
+  },
+  "frozen_mapping": {
+    "interpolation": "linear in precision and noise and log-linear in cluster count",
+    "primary_prediction": "mean learned selective gain, mean margin versus no-op, and mean margin versus apply-all at each registered coordinate",
+    "categorical_selective_value": "both mean margins are positive and both repeat-level win probabilities are at least 0.8",
+    "xray_sensitivity": "repeat the mapping at noise 0.4, 0.6, and 0.6219512195121951; do not replace the primary coordinate based on which result agrees with reality"
+  },
+  "reveal_order": [
+    "run simulator without reading observed-gain artifacts",
+    "write predictions-only JSON",
+    "hash predictions-only JSON",
+    "only then join predictions to previously observed outcomes"
+  ],
+  "forbidden_before_prediction_hash": [
+    "changing simulator parameters",
+    "changing grid after inspecting extended results",
+    "reading or joining observed real-domain gains in the prediction script",
+    "changing categorical success criterion"
+  ]
+}

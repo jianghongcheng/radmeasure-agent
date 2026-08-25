@@ -1,0 +1,27 @@
+window.config = {
+  routerBasename: '/',
+  extensions: [],
+  modes: [],
+  showStudyList: true,
+  dataSources: [{
+    namespace: '@ohif/extension-default.dataSourcesModule.dicomweb',
+    sourceName: 'orthanc',
+    configuration: {
+      friendlyName: 'GeoMed Research Orthanc',
+      name: 'orthanc',
+      wadoUriRoot: 'http://localhost:8042/wado',
+      qidoRoot: 'http://localhost:8042/dicom-web',
+      wadoRoot: 'http://localhost:8042/dicom-web',
+      stowRoot: 'http://localhost:8042/dicom-web',
+      qidoSupportsIncludeField: true,
+      imageRendering: 'wadors',
+      thumbnailRendering: 'wadors',
+      enableStudyLazyLoad: true,
+      supportsFuzzyMatching: true,
+      supportsWildcard: true,
+      omitQuotationForMultipartRequest: true,
+      requestOptions: { auth: 'geomed:geomed-local', credentials: 'include' },
+    },
+  }],
+  defaultDataSourceName: 'orthanc',
+};

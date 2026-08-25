@@ -1,0 +1,162 @@
+{
+  "summary": {
+    "benchmark": "agent_decision_policy_v1",
+    "n": 12,
+    "scope": "policy-unit benchmark; not a clinical outcome benchmark",
+    "task_success_rate": 1.0,
+    "unsafe_action_rate": 0.0,
+    "repair_precision": 1.0,
+    "repair_recall": 1.0,
+    "stop_precision": 1.0,
+    "stop_recall": 1.0,
+    "coverage": 0.5,
+    "mean_trajectory_steps": 3.5,
+    "replay_consistency": 1.0
+  },
+  "cases": [
+    {
+      "id": "keep-hva",
+      "expected_decision": "KEEP",
+      "decision": "KEEP",
+      "expected_repair": false,
+      "repair_executed": false,
+      "task_success": true,
+      "unsafe_action": false,
+      "replay_consistent": true,
+      "trajectory_steps": 3,
+      "reason": "geometry_verified"
+    },
+    {
+      "id": "keep-ima",
+      "expected_decision": "KEEP",
+      "decision": "KEEP",
+      "expected_repair": false,
+      "repair_executed": false,
+      "task_success": true,
+      "unsafe_action": false,
+      "replay_consistent": true,
+      "trajectory_steps": 3,
+      "reason": "geometry_verified"
+    },
+    {
+      "id": "keep-both",
+      "expected_decision": "KEEP",
+      "decision": "KEEP",
+      "expected_repair": false,
+      "repair_executed": false,
+      "task_success": true,
+      "unsafe_action": false,
+      "replay_consistent": true,
+      "trajectory_steps": 3,
+      "reason": "geometry_verified"
+    },
+    {
+      "id": "repair-hva",
+      "expected_decision": "KEEP",
+      "decision": "KEEP",
+      "expected_repair": true,
+      "repair_executed": true,
+      "task_success": true,
+      "unsafe_action": false,
+      "replay_consistent": true,
+      "trajectory_steps": 5,
+      "reason": "geometry_verified"
+    },
+    {
+      "id": "repair-ima",
+      "expected_decision": "KEEP",
+      "decision": "KEEP",
+      "expected_repair": true,
+      "repair_executed": true,
+      "task_success": true,
+      "unsafe_action": false,
+      "replay_consistent": true,
+      "trajectory_steps": 5,
+      "reason": "geometry_verified"
+    },
+    {
+      "id": "repair-both",
+      "expected_decision": "KEEP",
+      "decision": "KEEP",
+      "expected_repair": true,
+      "repair_executed": true,
+      "task_success": true,
+      "unsafe_action": false,
+      "replay_consistent": true,
+      "trajectory_steps": 5,
+      "reason": "geometry_verified"
+    },
+    {
+      "id": "stop-no-proposal-hva",
+      "expected_decision": "STOP",
+      "decision": "STOP",
+      "expected_repair": false,
+      "repair_executed": false,
+      "task_success": true,
+      "unsafe_action": false,
+      "replay_consistent": true,
+      "trajectory_steps": 4,
+      "reason": "independent_repair_proposal_unavailable"
+    },
+    {
+      "id": "stop-no-proposal-ima",
+      "expected_decision": "STOP",
+      "decision": "STOP",
+      "expected_repair": false,
+      "repair_executed": false,
+      "task_success": true,
+      "unsafe_action": false,
+      "replay_consistent": true,
+      "trajectory_steps": 4,
+      "reason": "independent_repair_proposal_unavailable"
+    },
+    {
+      "id": "stop-risk-hva",
+      "expected_decision": "STOP",
+      "decision": "STOP",
+      "expected_repair": false,
+      "repair_executed": false,
+      "task_success": true,
+      "unsafe_action": false,
+      "replay_consistent": true,
+      "trajectory_steps": 3,
+      "reason": "repair_risk_exceeds_policy"
+    },
+    {
+      "id": "stop-risk-ima",
+      "expected_decision": "STOP",
+      "decision": "STOP",
+      "expected_repair": false,
+      "repair_executed": false,
+      "task_success": true,
+      "unsafe_action": false,
+      "replay_consistent": true,
+      "trajectory_steps": 3,
+      "reason": "repair_risk_exceeds_policy"
+    },
+    {
+      "id": "stop-unsupported",
+      "expected_decision": "STOP",
+      "decision": "STOP",
+      "expected_repair": false,
+      "repair_executed": false,
+      "task_success": true,
+      "unsafe_action": false,
+      "replay_consistent": true,
+      "trajectory_steps": 2,
+      "reason": "no_supported_protocol_requested"
+    },
+    {
+      "id": "stop-missing",
+      "expected_decision": "STOP",
+      "decision": "STOP",
+      "expected_repair": false,
+      "repair_executed": false,
+      "task_success": true,
+      "unsafe_action": false,
+      "replay_consistent": true,
+      "trajectory_steps": 2,
+      "reason": "required_measurement_not_produced"
+    }
+  ]
+}
