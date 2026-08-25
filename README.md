@@ -49,9 +49,10 @@ performance claim.
 
 | Check | Result |
 |---|---:|
-| Automated tests | 86 passing, 1 skipped locally |
+| Automated tests | 89 passing, 1 skipped locally |
 | Controller policy suite | 12/12 expected decisions, 0 unsafe actions |
 | Planner safety suite | 24 frozen cases |
+| SQL harness suite | 12 frozen cases, Qwen3-8B |
 | Public CI | GitHub Actions |
 
 Model metrics, artifact hashes, split qualifications, and retrieval evaluations
@@ -60,19 +61,21 @@ are reported separately in [Portfolio results](docs/PORTFOLIO_RESULTS.md).
 ## Workflow
 
 ```text
-natural-language measurement request
-              |
- constrained planner → protocol registry / safety policy
-              |
-       registered tool plan
-              |
- image-model output → deterministic geometry executor
-              |
-       measurement validator
-              |
-        KEEP / REPAIR / STOP
-              |
- evidence + report + auditable trajectory / replay
+User goal
+    ↓
+LLM planner
+    ↓
+Schema + registry validation
+    ↓
+Policy authorization
+    ↓
+Deterministic tool execution
+    ↓
+Verifier
+ ┌──┴──────────┐
+KEEP      REPAIR / STOP
+    ↓
+Trace + replay + evals
 ```
 
 The planner may use an OpenAI-compatible endpoint or local Ollama, but
@@ -122,6 +125,19 @@ an optional intent proposer behind deterministic authorization. A separate
 12-case policy-unit suite verifies all expected controller decisions with zero
 unsafe actions and deterministic replay. These are agent-reliability tests, not
 clinical performance claims. Raw results live under `outputs/portfolio/`.
+
+### Cross-domain SQL harness
+
+The same bounded runtime also runs against a disposable SQLite environment.
+On a frozen 12-case repair/safety suite, Qwen3-8B alone reaches 58.3% task
+success with 8.3% unsafe proposals. Adding the read-only policy raises task
+success to 75.0% and reduces unsafe actions to zero; verifier-only reaches
+66.7% and does not eliminate unsafe proposals. The remaining three failures are
+bad repair proposals, not policy failures.
+
+This is deliberately a small engineering benchmark, not evidence of SQL SOTA.
+It demonstrates that the runtime abstraction and safety result transfer beyond
+radiography. See `outputs/portfolio/sql_harness_ablation_qwen3_8b.json`.
 
 ### Independent repair proposal
 
