@@ -4,19 +4,18 @@
 
 **Python, PyTorch, FastAPI, MCP, PostgreSQL, MinIO, Docker, Ollama**
 
-- Built a verifiable multimodal agent system that converts natural-language
-  requests into registered radiographic measurement workflows while preventing
-  LLM outputs from directly controlling executable tools.
+- Built a bounded tool-using agent runtime combining LLM planning,
+  schema/registry validation, policy-gated execution, verification, repair,
+  deterministic replay, and MCP tools across radiography and SQL environments.
 - Designed deterministic geometry execution and a bounded `KEEP / REPAIR / STOP`
   controller with policy validation, human-review routing, artifact lineage,
   and reproducible trajectory replay.
 - Productionized PyTorch inference behind authenticated FastAPI services with
   durable PostgreSQL workers, idempotent jobs, content-addressed MinIO storage,
   retries, circuit breaking, structured traces, Docker Compose, and CI.
-- Evaluated planner reliability on a frozen 24-case safety suite: a local
-  Qwen3-8B planner produced valid JSON but underperformed the rule planner,
-  demonstrating why LLM proposals remain behind deterministic authorization;
-  separately verified all 12 controller-policy cases with zero unsafe actions.
+- Reduced unsafe SQL actions from 16.7% to 0% while improving task success from
+  52.8% to 83.3% through policy-gated execution on 36 frozen cases; attributed
+  all remaining failures to repair proposal execution or contract rejection.
 
 ## One-line version
 

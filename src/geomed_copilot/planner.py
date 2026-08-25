@@ -47,6 +47,9 @@ class OllamaPlannerModel:
         self.timeout = timeout
 
     def complete(self, prompt: str) -> str:
+        return self.complete_with_metadata(prompt)[0]
+
+    def complete_with_metadata(self, prompt: str) -> tuple[str, dict]:
         body = json.dumps({
             "model": self.model,
             "stream": False,
@@ -58,7 +61,12 @@ class OllamaPlannerModel:
         request = urllib.request.Request(self.url, data=body, headers={"Content-Type": "application/json"})
         with urllib.request.urlopen(request, timeout=self.timeout) as response:
             value = json.loads(response.read())
-        return str(value["message"]["content"])
+        metadata = {
+            "prompt_tokens": int(value.get("prompt_eval_count", 0)),
+            "completion_tokens": int(value.get("eval_count", 0)),
+            "total_duration_ns": int(value.get("total_duration", 0)),
+        }
+        return str(value["message"]["content"]), metadata
 
 
 @dataclass(frozen=True)

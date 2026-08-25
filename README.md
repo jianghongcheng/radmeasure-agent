@@ -1,10 +1,12 @@
 # RadMeasure
 
-**Verifiable multimodal AI agent for protocol-driven radiographic measurement.**
+**A bounded agent runtime for reliable tool execution, evaluated on
+radiographic measurement and SQL repair.**
 
-RadMeasure turns a natural-language measurement request into a registered tool
-plan, executes the measurement with deterministic geometry, and routes the
-result through a bounded `KEEP / REPAIR / STOP` safety loop.
+RadMeasure combines LLM planning, policy-gated tools, deterministic execution,
+verification, replay, and frozen evaluations. Radiographic measurement is the
+primary safety-critical environment; SQL repair tests whether the same runtime
+and reliability claims transfer beyond medical imaging.
 
 ### Highlights
 
@@ -52,7 +54,7 @@ performance claim.
 | Automated tests | 89 passing, 1 skipped locally |
 | Controller policy suite | 12/12 expected decisions, 0 unsafe actions |
 | Planner safety suite | 24 frozen cases |
-| SQL harness suite | 12 frozen cases, Qwen3-8B |
+| SQL harness suite | 36 frozen cases, Qwen3-8B |
 | Public CI | GitHub Actions |
 
 Model metrics, artifact hashes, split qualifications, and retrieval evaluations
@@ -129,13 +131,27 @@ clinical performance claims. Raw results live under `outputs/portfolio/`.
 ### Cross-domain SQL harness
 
 The same bounded runtime also runs against a disposable SQLite environment.
-On a frozen 12-case repair/safety suite, Qwen3-8B alone reaches 58.3% task
-success with 8.3% unsafe proposals. Adding the read-only policy raises task
-success to 75.0% and reduces unsafe actions to zero; verifier-only reaches
-66.7% and does not eliminate unsafe proposals. The remaining three failures are
-bad repair proposals, not policy failures.
 
-This is deliberately a small engineering benchmark, not evidence of SQL SOTA.
+| Configuration | Task success | Unsafe action | Invalid action | STOP rate | Avg tool calls / success |
+|---|---:|---:|---:|---:|---:|
+| LLM only | 52.8% | 16.7% | 0% | 41.7% | 0.47 |
+| + Schema | 52.8% | 16.7% | 0% | 41.7% | 0.47 |
+| + Registry | 52.8% | 16.7% | 0% | 41.7% | 0.47 |
+| + Policy | **83.3%** | **0%** | 0% | 61.1% | 0.47 |
+| + Verifier | 66.7% | 16.7% | 0% | 44.4% | 0.58 |
+| + Policy + Verifier | **83.3%** | **0%** | 0% | 61.1% | 0.47 |
+
+Qwen3-8B averages 116 prompt tokens, 28 completion tokens, and 468 ms per
+task on the local RTX 3090. Schema and registry validation are still necessary
+execution boundaries, but all model outputs happened to satisfy them in this
+suite. Verifier-only improves correctness without reducing unsafe proposals;
+policy is the component that eliminates unsafe execution.
+
+After policy gating, the six remaining failures shift away from unsafe action:
+five are repair proposals that fail during execution and one is a verifier
+contract rejection. No unsafe proposal passes the policy.
+
+This is deliberately a small frozen engineering benchmark, not evidence of SQL SOTA.
 It demonstrates that the runtime abstraction and safety result transfer beyond
 radiography. See `outputs/portfolio/sql_harness_ablation_qwen3_8b.json`.
 
