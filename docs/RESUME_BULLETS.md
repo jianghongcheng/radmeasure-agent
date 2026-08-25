@@ -1,53 +1,32 @@
 # Resume-ready project entry
 
-## GeoMed Agent Platform — Python, FastAPI, MCP, Docker, multimodal retrieval
+## RadMeasure — Verifiable Multimodal Agent System
 
-- Built an auditable radiography AI workflow that exposes geometry verification,
-  similar-case retrieval, evidence-grounded reporting, and execution traces
-  through shared REST and MCP tool interfaces.
-- Packaged 176 persisted MedImageInsight evaluation outputs into a reproducible
-  replay service with per-case targets, absolute errors, artifact hashes, and
-  explicit provenance; reported HVA/IMA MAE of 3.56°/2.13° from the locked
-  artifact without claiming live inference or clinical validity.
-- Engineered a PostgreSQL-backed asynchronous job platform using `SKIP LOCKED`
-  concurrency, atomic worker leases,
-  bounded retries, idempotent submission, SHA-256 artifact deduplication,
-  human-review routing, and an append-only state audit trail across independent
-  API and worker containers; verified 50 concurrent jobs across two workers with
-  zero duplicate claims and successful crash-lease recovery.
-- Implemented S3-compatible MinIO storage with allow-listed uploads, SHA-256
-  content addressing, atomic object creation, and deduplication.
-- Added role-based API-key authorization, cross-process trace correlation,
-  structured JSON logs, normalized Prometheus metrics, and append-only audit
-  history without exposing keys or high-cardinality job identifiers.
-- Decoupled model execution into an internally authenticated inference service
-  with immutable model version/hash metadata, timeouts, exponential retries,
-  circuit breaking, readiness checks, and failure-without-fabricated-fallback
-  behavior verified through an outage test.
-- Added typed validation, partial-failure handling, citations, per-tool latency,
-  25 automated tests, GitHub Actions, and Docker deployment; audited all 176
-  geometry reconstructions to less than 0.0005° maximum target delta after
-  correcting image aspect ratio.
+**Python, PyTorch, FastAPI, MCP, PostgreSQL, MinIO, Docker, Ollama**
 
-## Short version
+- Built a verifiable multimodal agent system that converts natural-language
+  requests into registered radiographic measurement workflows while preventing
+  LLM outputs from directly controlling executable tools.
+- Designed deterministic geometry execution and a bounded `KEEP / REPAIR / STOP`
+  controller with policy validation, human-review routing, artifact lineage,
+  and reproducible trajectory replay.
+- Productionized PyTorch inference behind authenticated FastAPI services with
+  durable PostgreSQL workers, idempotent jobs, content-addressed MinIO storage,
+  retries, circuit breaking, structured traces, Docker Compose, and CI.
+- Evaluated planner reliability on a frozen 24-case safety suite: a local
+  Qwen3-8B planner produced valid JSON but underperformed the rule planner,
+  demonstrating why LLM proposals remain behind deterministic authorization;
+  separately verified all 12 controller-policy cases with zero unsafe actions.
 
-- Developed a Dockerized multimodal AI agent with FastAPI and MCP tools for
-  radiographic geometry verification and evidence-grounded retrieval, including
-  durable asynchronous workers, artifact provenance, human-review routing, 30
-  tests, and reproducible evaluation replay across 176 cases.
+## One-line version
+
+Built RadMeasure, a verifiable multimodal agent platform that constrains LLM
+planning through registered protocols, deterministic geometry tools,
+`KEEP / REPAIR / STOP` safety policies, and end-to-end auditable replay.
 
 ## Claim guardrails
 
-Do not write that the current repository performs live image inference, is
-clinically validated, or proves patient-disjoint performance. The persisted
-evaluation artifact does not align with the current regenerated split manifests;
-the service exposes this limitation directly in provenance.
-## Live-model version
-
-- Productionized a PyTorch ResNet50 radiograph regression model behind an
-  authenticated inference microservice, integrating content-addressed MinIO
-  storage, durable PostgreSQL jobs, idempotent FastAPI ingestion, two concurrent
-  workers, model/version/hash provenance, and mandatory human-review routing.
-- Reproduced HVA/IMA performance on a locked 120-image test split (3.12°/1.50°
-  MAE) and validated the full upload-to-inference path with 32 automated tests;
-  sustained about 11.5 images/s on local CPU in offline evaluation.
+Do not describe RadMeasure as an autonomous radiology agent, a clinically
+validated system, or a fully automated measurement product. The current
+evidence supports a production-style research prototype with explicit human
+review and safety boundaries.

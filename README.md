@@ -1,9 +1,36 @@
 # RadMeasure
 
-RadMeasure is a verifiable multimodal execution platform for protocol-driven
-radiographic measurements. It connects constrained orchestration and image-model
-outputs to deterministic geometry, verification policies, durable jobs,
-human review, structured traces, and lineage-aware replay.
+**Verifiable multimodal AI agent for protocol-driven radiographic measurement.**
+
+RadMeasure turns a natural-language measurement request into a registered tool
+plan, executes the measurement with deterministic geometry, and routes the
+result through a bounded `KEEP / REPAIR / STOP` safety loop.
+
+### Highlights
+
+- LLM planner with registry- and policy-constrained tool execution
+- Deterministic geometry instead of LLM-generated measurements
+- `KEEP / REPAIR / STOP` verification with mandatory human-review paths
+- Trace-based replay, artifact lineage, and per-tool observability
+- FastAPI, MCP, PostgreSQL workers, MinIO, Docker Compose, and GitHub Actions
+
+## Quick start
+
+Run the dependency-light offline workflow:
+
+```bash
+git clone https://github.com/jianghongcheng/radmeasure-agent.git
+cd radmeasure-agent
+pip install -e .
+radmeasure --question "Measure and verify the hallux valgus angle"
+```
+
+The command uses bundled synthetic geometry and labels its provenance
+accordingly; no model checkpoint or medical data is required. For the complete
+service stack and live-model setup, see [Model serving](docs/MODEL_SERVING.md)
+and the [five-minute portfolio demo](#five-minute-portfolio-demo).
+
+## What is reusable
 
 The architecture is domain-independent; radiographic measurement is its first
 safety-critical evaluation environment. Its reusable systems contribution is a
@@ -13,69 +40,22 @@ chooses `KEEP`, `REPAIR`, or `STOP`. The current empirical evidence is medical,
 so cross-domain generality is an architectural claim rather than a benchmarked
 performance claim.
 
+> **LLM proposes. Policy authorizes. Deterministic tools execute. Verifier decides.**
+
 > Research prototype only. It is not a medical device and must not be used for
 > diagnosis or patient care.
 
-## Verified results
+## Engineering evidence
 
-All model numbers below come from a hash-locked 176-case evaluation artifact;
-they are not synthetic demo scores. The artifact no longer aligns with the
-current processed split manifests, so patient-disjoint status is not claimed.
-
-| Evaluation | Result |
+| Check | Result |
 |---|---:|
-| Locked test cases | 176 |
-| HVA MAE / within 5° | **3.56° / 75.6%** |
-| IMA MAE / within 3° | **2.13° / 75.6%** |
-| Similar-case pool | 829 locked training cases |
-| Hybrid case Recall@5 | 6.59% |
-| Geometry-only case Recall@5 | 6.25% |
-| Image-only case Recall@5 | 0.80% |
-| Curated evidence Hit@3 / MRR | 1.00 / 1.00 (5 questions) |
-| Automated tests | 86 passing, 1 skipped |
+| Automated tests | 86 passing, 1 skipped locally |
+| Controller policy suite | 12/12 expected decisions, 0 unsafe actions |
+| Planner safety suite | 24 frozen cases |
+| Public CI | GitHub Actions |
 
-### Agent evaluation
-
-A frozen 24-case protocol-planning benchmark compares a fixed workflow, the
-deterministic registry planner, and a local `qwen3:8b` planner on supported,
-unsupported, missing-input, and prompt-injection requests.
-
-| Planner | Action accuracy | Unsafe action rate | Valid structured output |
-|---|---:|---:|---:|
-| Fixed HVA+IMA workflow | 50.0% | 50.0% | 100% |
-| Registry/rule planner | **75.0%** | **16.7%** | 100% |
-| Qwen3-8B + schema only | 62.5% | 37.5% | 100% |
-
-Qwen3-8B uses Ollama's native JSON mode with thinking disabled and averages
-585 ms per request on the local RTX 3090. It does **not** beat the rule planner:
-the result justifies treating the LLM as an optional intent proposer behind a
-deterministic safety policy, not as an autonomous executor. This is the intended
-reliability result: the system measures when an LLM should not be trusted and
-fails closed instead of equating model fluency with permission to act. See
-`outputs/portfolio/planner_baselines_qwen3_8b.json`.
-
-A separate 12-case deterministic policy-unit benchmark exercises `KEEP`, safe
-and rejected `REPAIR`, missing proposals, unsupported inputs, and `STOP`. It
-achieves 12/12 expected decisions with zero unsafe actions and deterministic
-replay. This verifies controller logic only; it is not evidence of clinical
-recovery performance. See `outputs/portfolio/agent_decision_policy_v1.json`.
-
-The live image adapter additionally uses a hash-locked supervised ResNet50
-checkpoint evaluated on the 120-image HVAngleEst unilateral test split:
-
-| Live model evaluation | Result |
-|---|---:|
-| HVA MAE / within 5° | **3.12° / 79.2%** |
-| IMA MAE / within 5° | **1.50° / 98.3%** |
-| CPU throughput (local verification) | **120 images / 10.4 s** |
-
-Its checkpoint SHA-256 is
-`120679da9c6d345461d55343bc164cba7c6a0966170691447e72822ed380144a`.
-
-The prediction artifact SHA-256 is
-`ad3fea57c9c8a83c9085220d129b89ea6aaff5483d26abcb64dede92dbc1431f`.
-See [PORTFOLIO_RESULTS.md](docs/PORTFOLIO_RESULTS.md) for definitions and
-limitations.
+Model metrics, artifact hashes, split qualifications, and retrieval evaluations
+are reported separately in [Portfolio results](docs/PORTFOLIO_RESULTS.md).
 
 ## Workflow
 
@@ -123,6 +103,25 @@ curl -X POST http://127.0.0.1:8000/v1/plan \
   -H 'content-type: application/json' -H 'x-api-key: viewer-local' \
   --data '{"request":"Measure hallux valgus angle"}'
 ```
+
+## Planner reliability evaluation
+
+A frozen 24-case benchmark compares a fixed workflow, the deterministic
+registry planner, and local `qwen3:8b` on supported, unsupported, missing-input,
+and prompt-injection requests.
+
+| Planner | Action accuracy | Unsafe action rate | Valid JSON |
+|---|---:|---:|---:|
+| Fixed HVA+IMA workflow | 50.0% | 50.0% | 100% |
+| Registry/rule planner | **75.0%** | **16.7%** | 100% |
+| Qwen3-8B + schema only | 62.5% | 37.5% | 100% |
+
+The negative result is intentional evidence, not a hidden model claim. Qwen3-8B
+produces structured plans but does not beat the rule planner, so the LLM remains
+an optional intent proposer behind deterministic authorization. A separate
+12-case policy-unit suite verifies all expected controller decisions with zero
+unsafe actions and deterministic replay. These are agent-reliability tests, not
+clinical performance claims. Raw results live under `outputs/portfolio/`.
 
 ### Independent repair proposal
 
@@ -306,7 +305,7 @@ PYTHONPATH=src python scripts/portfolio_benchmark.py --iterations 100
 This reports successful runs, tool success rate, citation presence, and p50/p95
 workflow latency. It is an engineering reliability check, not clinical validation.
 
-## Honest limitations
+## Limitations
 
 - Live inference currently supports JPEG/PNG only; DICOM is accepted by storage
   but deliberately rejected by the image adapter until modality/windowing and
@@ -318,3 +317,8 @@ workflow latency. It is an engineering reliability check, not clinical validatio
 - The evidence evaluation contains five transparent, manually labeled questions.
 - No prospective or external clinical validation has been performed.
 - Dataset redistribution remains disabled pending a separate license review.
+
+See [Portfolio results](docs/PORTFOLIO_RESULTS.md),
+[Security and observability](docs/SECURITY_AND_OBSERVABILITY.md), and
+[Engineering architecture](docs/ENGINEERING_ARCHITECTURE.md) for detailed
+evaluation scope, deployment assumptions, and failure analysis.
