@@ -1,5 +1,7 @@
 from pathlib import Path
 
+import pytest
+
 from geomed_copilot.production import EvaluationReplayService
 from geomed_copilot.tools import GeoMedTools
 
@@ -16,6 +18,9 @@ def _tools() -> GeoMedTools:
 
 
 def test_portable_evaluation_replay_exposes_real_locked_cases():
+    artifact = Path(__file__).parents[1] / "data/processed/hvangleest/medimageinsight_locked_test_eval.json"
+    if not artifact.exists():
+        pytest.skip("locked evaluation artifact is intentionally excluded from the public repository")
     tools = _tools()
     capabilities = tools.capabilities()
     assert capabilities["mode"] == "portable_locked_evaluation_replay"

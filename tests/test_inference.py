@@ -1,12 +1,16 @@
 import urllib.error
 from pathlib import Path
 
+import pytest
+
 from geomed_copilot.inference import LockedEvaluationAdapter, ModelRegistry
 from geomed_copilot.inference_client import InferenceClient, InferenceUnavailable
 
 
 def test_locked_adapter_exposes_version_hash_and_honest_capabilities():
     artifact = Path(__file__).parents[1] / "data/processed/hvangleest/medimageinsight_locked_test_eval.json"
+    if not artifact.exists():
+        pytest.skip("locked evaluation artifact is intentionally excluded from the public repository")
     registry = ModelRegistry([LockedEvaluationAdapter(artifact)])
     model = registry.list_models()[0]
     assert model["artifact_sha256"]
