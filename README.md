@@ -29,11 +29,11 @@ not policy bypasses.
 | LLM only | 19/36 | 6/36 |
 | Policy + verifier | **30/36** | **0/36** |
 
-The self-hosted Ollama/Qwen3-8B run measured **444 ms p50** and **595 ms p95
-end-to-end latency** across planning, policy, verification, and SQL execution,
-with **0.56 tool calls per task**. One cold-start request took 16.7 s. The
-single planner call averaged 116 prompt and 28 completion tokens; these are not
-full-trajectory token costs.
+The self-hosted Ollama/Qwen3-8B run measured **443 ms p50** and **594 ms p95
+planner-generation latency**. One cold-start request took 16.7 s. The single
+planner call averaged 116 prompt and 28 completion tokens. This benchmark uses
+a bounded single-action runtime, so these are not multi-turn agent latency or
+full-trajectory token-cost claims.
 This is a small, frozen agent-reliability benchmark,
 not a SQL leaderboard or production-traffic claim. See the
 [raw result artifact](outputs/portfolio/sql_harness_ablation_qwen3_8b.json),
@@ -165,9 +165,10 @@ The same bounded runtime also runs against a disposable SQLite environment.
 | + Verifier | 66.7% | 16.7% | 0% | 44.4% | 0.58 |
 | + Policy + Verifier | **83.3%** | **0%** | 0% | 61.1% | 0.47 |
 
-Qwen3-8B averages 116 prompt tokens and 28 completion tokens per planner call.
-Across the full bounded workflow, latency is 444 ms p50 and 595 ms p95 with
-0.56 tool calls per task; one cold-start request took 16.7 s. Schema and registry validation are still necessary
+Qwen3-8B averages 116 prompt tokens and 28 completion tokens per planner call,
+with 443 ms p50 and 594 ms p95 planner-generation latency; one cold-start
+request took 16.7 s. The harness permits at most one execution action per task
+and is not a multi-turn latency benchmark. Schema and registry validation are still necessary
 execution boundaries, but all model outputs happened to satisfy them in this
 suite. Verifier-only improves correctness without reducing unsafe proposals;
 policy is the component that eliminates unsafe execution.

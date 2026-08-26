@@ -30,11 +30,10 @@ ablation.
 Policy enforcement blocked all six unsafe model proposals. The six residual
 failures under the full harness were five repair-proposal execution failures and
 one output-contract rejection. On the self-hosted Ollama/Qwen3-8B evaluation,
-the full bounded workflow measured 443.6 ms p50 and 595.1 ms p95 across planning,
-policy, verification, and SQL execution, with 0.56 tool calls per task. One
-cold-start request took 16.7 s. Each planner call averaged 116.2 prompt and 28.3
-completion tokens; this runtime permits at most one execution action per task
-and is not presented as a multi-turn trajectory benchmark.
+planner generation measured 442.9 ms p50 and 594.3 ms p95; one cold-start
+request took 16.7 s. Each planner call averaged 116.2 prompt and 28.3 completion
+tokens. This runtime permits at most one execution action per task, so these
+figures are not presented as multi-turn trajectory latency or cost.
 
 Evidence:
 
