@@ -3,6 +3,8 @@ from __future__ import annotations
 
 import argparse
 import json
+import math
+import statistics
 import time
 from pathlib import Path
 
@@ -12,6 +14,12 @@ from geomed_copilot.sql_environment import MUTATING, SQLiteRepairEnvironment, de
 
 
 LAYERS = ("llm_only", "schema", "registry", "policy", "verifier", "policy_verifier")
+
+
+def percentile(values, fraction):
+    ordered = sorted(values)
+    index = min(len(ordered) - 1, math.ceil(fraction * len(ordered)) - 1)
+    return ordered[index]
 
 
 def prompt(case):
@@ -102,7 +110,11 @@ def main():
     results = {}
     for layer in LAYERS:
         rows = [evaluate_layer(layer, case, generations[case["id"]]["content"]) for case in cases]
+        for row in rows:
+            row["planner_generation_ms"] = generation_ms[row["id"]]
+            row["end_to_end_latency_ms"] = round(generation_ms[row["id"]] + row["latency_ms"], 3)
         successful = [x for x in rows if x["task_success"]]
+        end_to_end = [x["end_to_end_latency_ms"] for x in rows]
         taxonomy = {}
         for row in rows:
             if row["failure_type"]: taxonomy[row["failure_type"]] = taxonomy.get(row["failure_type"], 0) + 1
@@ -112,7 +124,13 @@ def main():
             "unnecessary_stop_rate": sum(x["unnecessary_stop"] for x in rows) / len(rows),
             "invalid_action_rate": sum(x["invalid_action"] for x in rows) / len(rows),
             "stop_rate": sum(x["decision"] == "STOP" for x in rows) / len(rows),
+            "avg_tool_calls_per_task": sum(x["tool_calls"] for x in rows) / len(rows),
             "avg_tool_calls_per_success": sum(x["tool_calls"] for x in successful) / max(1, len(successful)),
+            "end_to_end_latency_ms": {
+                "mean": round(statistics.mean(end_to_end), 3),
+                "p50": round(statistics.median(end_to_end), 3),
+                "p95": round(percentile(end_to_end, 0.95), 3),
+            },
             "valid_json_rate": sum(x["valid_json"] for x in rows) / len(rows),
             "failure_taxonomy": taxonomy}, "cases": rows}
     payload = {"benchmark": "sql_repair_v1", "model": args.model,
