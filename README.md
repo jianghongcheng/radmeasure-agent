@@ -78,6 +78,8 @@ domain independence.
 
 > **LLM proposes. Policy authorizes. Deterministic tools execute. Verifier decides.**
 
+<!-- Keep the design principle and safety disclaimer as separate callouts. -->
+
 > Research prototype only. It is not a medical device and must not be used for
 > diagnosis or patient care.
 
@@ -190,10 +192,11 @@ by task class, all 8 expected-`KEEP` and all 12 expected-`REPAIR` tasks invoked
 the registered SQL tool exactly once, and all 16 expected-`STOP` tasks invoked
 none. The policy blocked unsafe actions before execution.
 
-**Why `+ Policy` and `+ Policy + Verifier` are identical.** On this suite the
-verifier changes no outcome once policy gating is active: every response the
-policy admits already satisfies the output contract. Verifier-only (without
-policy) improves correctness but does not reduce unsafe proposals. Policy is the
+**Why `+ Policy` and `+ Policy + Verifier` are identical.** Once policy gating
+is active the verifier changes no task outcome on this suite—the same 30 tasks
+succeed either way. It does change how one failure is classified: a contract
+rejection rather than a failed execution. Verifier-only, without policy,
+improves correctness but leaves the unsafe-action rate unchanged. Policy is the
 component that eliminates unsafe execution; the verifier earns its place on the
 radiographic path, not on this suite.
 
@@ -376,6 +379,11 @@ reports the split alignment as unverified. Inspect predictions, targets,
 absolute errors, citations, provenance, and per-tool latency. The response
 explicitly reports that live inference is off.
 
+Because most of these cases were seen during training, the displayed errors are
+optimistically biased and must not be read as held-out performance. They
+demonstrate the workflow, traces, and provenance surface—not measurement
+accuracy.
+
 The dashboard submits a durable asynchronous job. The API writes an idempotent
 queued record, and a separate worker atomically claims it, runs the workflow,
 and stores either `completed`, `needs_review`, or `failed`. PostgreSQL persists
@@ -447,6 +455,6 @@ University of Missouri–Kansas City.
 
 RadMeasure originated from work at
 [NextTier IT Solutions Consultancy](https://www.nexttiertech.com/) and was later
-released publicly by the author.
+released publicly with permission.
 
 Released under the [MIT License](LICENSE).
