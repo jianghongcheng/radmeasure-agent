@@ -29,8 +29,10 @@ not policy bypasses.
 | LLM only | 19/36 | 6/36 |
 | Policy + verifier | **30/36** | **0/36** |
 
-The local RTX 3090 run averaged **468 ms model-generation latency** and about
-**145 tokens per task**. This is a small, frozen agent-reliability benchmark,
+The self-hosted Ollama/Qwen3-8B run on one RTX 3090 measured **458 ms p50** and
+**601 ms p95 planner-generation latency**. Its single planner call averaged
+116 prompt and 28 completion tokens; these are not full-trajectory token costs.
+This is a small, frozen agent-reliability benchmark,
 not a SQL leaderboard or production-traffic claim. See the
 [raw result artifact](outputs/portfolio/sql_harness_ablation_qwen3_8b.json),
 [benchmark cases](data/benchmarks/sql_repair_v1.json), and
@@ -161,8 +163,9 @@ The same bounded runtime also runs against a disposable SQLite environment.
 | + Verifier | 66.7% | 16.7% | 0% | 44.4% | 0.58 |
 | + Policy + Verifier | **83.3%** | **0%** | 0% | 61.1% | 0.47 |
 
-Qwen3-8B averages 116 prompt tokens, 28 completion tokens, and 468 ms per
-task on the local RTX 3090. Schema and registry validation are still necessary
+Qwen3-8B averages 116 prompt tokens and 28 completion tokens per planner call,
+with 458 ms p50 and 601 ms p95 generation latency on the local RTX 3090.
+These token counts exclude deterministic tool execution. Schema and registry validation are still necessary
 execution boundaries, but all model outputs happened to satisfy them in this
 suite. Verifier-only improves correctness without reducing unsafe proposals;
 policy is the component that eliminates unsafe execution.

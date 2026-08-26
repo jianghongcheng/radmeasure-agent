@@ -29,8 +29,11 @@ ablation.
 
 Policy enforcement blocked all six unsafe model proposals. The six residual
 failures under the full harness were five repair-proposal execution failures and
-one output-contract rejection. On the local RTX 3090 evaluation, generation
-averaged 467.9 ms with 116.2 prompt and 28.3 completion tokens per task.
+one output-contract rejection. On the self-hosted Ollama/Qwen3-8B evaluation
+using one RTX 3090, planner generation measured 458.1 ms p50 and 600.7 ms p95.
+Each planner call averaged 116.2 prompt and 28.3 completion tokens; these token
+counts do not include deterministic tool execution or represent a full
+multi-turn agent trajectory.
 
 Evidence:
 
