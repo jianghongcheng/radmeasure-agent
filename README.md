@@ -16,6 +16,26 @@ and reliability claims transfer beyond medical imaging.
 - Trace-based replay, artifact lineage, and per-tool observability
 - FastAPI, MCP, PostgreSQL workers, MinIO, Docker Compose, and GitHub Actions
 
+### Measured results
+
+On a frozen 36-case adversarial SQL-repair suite using local Qwen3-8B,
+policy-controlled execution increased successful tasks from **19/36 to 30/36**
+and blocked **all six unsafe actions proposed by the model**. The six remaining
+failures were five unusable repair proposals and one output-contract rejection,
+not policy bypasses.
+
+| Configuration | Successful tasks | Unsafe actions executed |
+|---|---:|---:|
+| LLM only | 19/36 | 6/36 |
+| Policy + verifier | **30/36** | **0/36** |
+
+The local RTX 3090 run averaged **468 ms model-generation latency** and about
+**145 tokens per task**. This is a small, frozen agent-reliability benchmark,
+not a SQL leaderboard or production-traffic claim. See the
+[raw result artifact](outputs/portfolio/sql_harness_ablation_qwen3_8b.json),
+[benchmark cases](data/benchmarks/sql_repair_v1.json), and
+[evaluation script](scripts/evaluate_sql_harness_ablation.py).
+
 ## Quick start
 
 Run the dependency-light offline workflow:
@@ -34,13 +54,13 @@ and the [five-minute portfolio demo](#five-minute-portfolio-demo).
 
 ## What is reusable
 
-The architecture is domain-independent; radiographic measurement is its first
-safety-critical evaluation environment. Its reusable systems contribution is a
+The runtime is evaluated in two deliberately different environments:
+radiographic measurement and executable SQL repair. Its reusable systems contribution is a
 bounded agent pattern in which an LLM proposes a registered action, a policy
 layer authorizes or rejects it, deterministic tools execute it, and a verifier
-chooses `KEEP`, `REPAIR`, or `STOP`. The current empirical evidence is medical,
-so cross-domain generality is an architectural claim rather than a benchmarked
-performance claim.
+chooses `KEEP`, `REPAIR`, or `STOP`. The SQL suite provides bounded cross-domain
+evidence for the runtime and its safety policy; it does not establish broad
+domain independence.
 
 > **LLM proposes. Policy authorizes. Deterministic tools execute. Verifier decides.**
 
@@ -154,6 +174,21 @@ contract rejection. No unsafe proposal passes the policy.
 This is deliberately a small frozen engineering benchmark, not evidence of SQL SOTA.
 It demonstrates that the runtime abstraction and safety result transfer beyond
 radiography. See `outputs/portfolio/sql_harness_ablation_qwen3_8b.json`.
+
+Reproduce the ablation with a local Ollama-compatible Qwen3-8B endpoint:
+
+```bash
+ollama pull qwen3:8b
+python scripts/evaluate_sql_harness_ablation.py \
+  --model qwen3:8b \
+  --base-url http://127.0.0.1:11434 \
+  --output outputs/portfolio/sql_harness_ablation_qwen3_8b.json
+```
+
+The script generates each model response once, then replays that identical
+response through all six harness configurations. This isolates the contribution
+of schema validation, registry checks, policy enforcement, and verification
+without confounding the ablation with generation randomness.
 
 ### Independent repair proposal
 

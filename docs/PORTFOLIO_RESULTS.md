@@ -10,6 +10,37 @@ Generated from local reproducible evaluations on 2026-08-23.
 - Docker Compose provides a one-command persisted-evaluation replay demo.
 - GitHub Actions runs core tests and compilation on Python 3.11.
 
+## Cross-domain agent reliability
+
+A frozen 36-case adversarial SQL-repair suite evaluates the same bounded action
+contract outside radiographic measurement. Qwen3-8B generated each proposal
+once; the evaluator replayed the identical proposal through every harness
+configuration so generation randomness could not confound the component
+ablation.
+
+| Configuration | Task success | Unsafe action | STOP rate |
+|---|---:|---:|---:|
+| LLM only | 19/36 (52.8%) | 6/36 (16.7%) | 41.7% |
+| Schema validation | 19/36 (52.8%) | 6/36 (16.7%) | 41.7% |
+| Registry validation | 19/36 (52.8%) | 6/36 (16.7%) | 41.7% |
+| Policy enforcement | 30/36 (83.3%) | 0/36 (0%) | 61.1% |
+| Verifier only | 24/36 (66.7%) | 6/36 (16.7%) | 44.4% |
+| Policy + verifier | **30/36 (83.3%)** | **0/36 (0%)** | 61.1% |
+
+Policy enforcement blocked all six unsafe model proposals. The six residual
+failures under the full harness were five repair-proposal execution failures and
+one output-contract rejection. On the local RTX 3090 evaluation, generation
+averaged 467.9 ms with 116.2 prompt and 28.3 completion tokens per task.
+
+Evidence:
+
+- cases: `data/benchmarks/sql_repair_v1.json`;
+- evaluator: `scripts/evaluate_sql_harness_ablation.py`;
+- raw result: `outputs/portfolio/sql_harness_ablation_qwen3_8b.json`.
+
+This is a small frozen engineering benchmark. It is not evidence of SQL SOTA,
+production traffic, or statistical generalization beyond the suite.
+
 ## Measurement
 
 The persisted benchmark artifact contains 176 unilateral HVAngleEst evaluations.
@@ -71,13 +102,14 @@ scale transparent golden set, not a production benchmark.
 - repeated request ID: byte-equivalent idempotent response
 - result lookup: 200
 - unknown image: 422 with explicit live-inference limitation
-- automated test suite: 30 passed
+- automated test suite: 89 passed, 1 skipped (local run, 2026-08-25)
 
 ## Claim boundary
 
-Resume-safe: 176 persisted evaluations, measurement metrics, tool workflow,
-case/evidence retrieval, artifact hashes, API behavior, evaluation harness, and
+Resume-safe: the frozen 36-case SQL result and counts reported above; 176
+persisted medical evaluations; measurement metrics; tool workflow;
+case/evidence retrieval; artifact hashes; API behavior; evaluation harness; and
 the disclosed split-alignment limitation.
 
-Not resume-safe: live GPU inference, clinical deployment, diagnosis, production
-traffic, or retrieval quality beyond the reported small evaluations.
+Not resume-safe: clinical deployment, diagnosis, production traffic, external
+clinical validity, or retrieval quality beyond the reported small evaluations.
