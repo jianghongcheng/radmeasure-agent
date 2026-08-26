@@ -44,6 +44,38 @@ Evidence:
 This is a small frozen engineering benchmark. It is not evidence of SQL SOTA,
 production traffic, or statistical generalization beyond the suite.
 
+### Tool execution by task class
+
+| Expected action | Tasks | Registered tool calls | Successful tasks |
+|---|---:|---:|---:|
+| KEEP | 8 | 8 | 8 |
+| REPAIR | 12 | 12 | 6 |
+| STOP | 16 | 0 | 16 |
+
+The aggregate 20/36 call rate is not used as an agent-complexity claim. It
+reflects the benchmark design: every execution-eligible KEEP/REPAIR task invokes
+the SQL tool exactly once, while STOP-policy tasks terminate before execution.
+
+### Measurement protocol
+
+- frozen suite: 36 cases from `data/benchmarks/sql_repair_v1.json`;
+- execution date: 2026-08-25 (America/Chicago);
+- model endpoint: self-hosted Ollama `qwen3:8b`;
+- scheduling: sequential requests, batch size 1, one planner generation per case;
+- warm-up: none; the reported distribution includes the first cold request;
+- prompt length: 116.2 tokens on average;
+- completion length: 28.3 tokens on average;
+- timing source: Ollama `total_duration_ns`, measuring planner generation rather
+  than multi-turn workflow latency;
+- aggregation: median for p50 and nearest-rank order statistic for p95 over all
+  36 requests;
+- result: 442.9 ms p50, 594.3 ms p95, and a 16.7 s cold-start maximum;
+- raw artifact: `outputs/portfolio/sql_harness_ablation_qwen3_8b.json` at commit
+  `0ffa03a54f3657e13b50cd3473b97436d512c2a4`.
+
+The six harness layers reuse the same 36 generated responses, so their
+reliability comparison is not confounded by repeated stochastic generation.
+
 ## Measurement
 
 The persisted benchmark artifact contains 176 unilateral HVAngleEst evaluations.

@@ -196,6 +196,13 @@ response through all six harness configurations. This isolates the contribution
 of schema validation, registry checks, policy enforcement, and verification
 without confounding the ablation with generation randomness.
 
+Tool execution is reported by task class rather than as a misleading global
+average: all 8 expected-`KEEP` and all 12 expected-`REPAIR` tasks invoked the
+registered SQL tool once, while all 16 expected-`STOP` tasks invoked no tool.
+The policy blocked unsafe actions before execution. Full measurement conditions
+and percentile definitions are recorded in
+[Portfolio results](docs/PORTFOLIO_RESULTS.md#measurement-protocol).
+
 ### Independent repair proposal
 
 Live uploads keep the supervised ResNet angle model as the primary predictor.
