@@ -8,11 +8,21 @@ verification, replay, and frozen evaluations. Radiographic measurement is the
 primary safety-critical environment; SQL repair tests whether the same runtime
 and reliability claims transfer beyond medical imaging.
 
+> **Naming note.** `RadMeasure` is the project name. `geomed_copilot` is the
+> Python package name, and the service, MCP server, and `GEOMED_*` environment
+> variables inherit that prefix. They refer to the same system. Planner
+> configuration uses the `RADMEASURE_PLANNER_*` variables; data and artifact
+> paths use `GEOMED_*`.
+
 ### Highlights
 
-- LLM planner with registry- and policy-constrained tool execution
 - Deterministic geometry instead of LLM-generated measurements
+- LLM planner with registry- and policy-constrained tool execution
 - `KEEP / REPAIR / STOP` verification with mandatory human-review paths
+- Caught patient-level leakage in the public HVAngleEst release split and
+  rebuilt a patient-disjoint manifest ([details](#data-integrity))
+- Negative results reported as design evidence, not omitted
+  ([details](#planner-reliability-evaluation))
 - Trace-based replay, artifact lineage, and per-tool observability
 - FastAPI, MCP, PostgreSQL workers, MinIO, Docker Compose, and GitHub Actions
 
@@ -54,7 +64,7 @@ radmeasure --question "Measure and verify the hallux valgus angle"
 The command uses bundled synthetic geometry and labels its provenance
 accordingly; no model checkpoint or medical data is required. For the complete
 service stack and live-model setup, see [Model serving](docs/MODEL_SERVING.md)
-and the [five-minute portfolio demo](#five-minute-portfolio-demo).
+and the [five-minute demo](#five-minute-demo).
 
 ## What is reusable
 
@@ -82,7 +92,7 @@ domain independence.
 | Public CI | GitHub Actions |
 
 Model metrics, artifact hashes, split qualifications, and retrieval evaluations
-are reported separately in [Portfolio results](docs/PORTFOLIO_RESULTS.md).
+are reported separately in [Evaluation results](docs/PORTFOLIO_RESULTS.md).
 
 ## Workflow
 
@@ -113,7 +123,7 @@ workflow runnable without a hosted model.
 ```bash
 export RADMEASURE_PLANNER_BASE_URL=http://127.0.0.1:8080/v1
 export RADMEASURE_PLANNER_MODEL=your-instruct-model
-export RADMEASURE_PLANNER_API_KEY=optional-local-or-hosted-key
+export RADMEASURE_PLANNER_API_KEY=<your-planner-key>
 ```
 
 For the benchmarked local 8B configuration:
@@ -129,9 +139,13 @@ Inspect the executable boundary:
 ```bash
 curl http://127.0.0.1:8000/v1/protocols
 curl -X POST http://127.0.0.1:8000/v1/plan \
-  -H 'content-type: application/json' -H 'x-api-key: viewer-local' \
+  -H 'content-type: application/json' -H 'x-api-key: <your-viewer-key>' \
   --data '{"request":"Measure hallux valgus angle"}'
 ```
+
+API keys are read from the environment; see `.env.example` for the variables
+the Compose demo expects. No usable credentials are committed to this
+repository.
 
 ## Planner reliability evaluation
 
@@ -156,6 +170,11 @@ clinical performance claims. Raw results live under `outputs/portfolio/`.
 
 The same bounded runtime also runs against a disposable SQLite environment.
 
+The ablation generates each model response **once**, then replays that identical
+response through all six harness configurations. This isolates the contribution
+of schema validation, registry checks, policy enforcement, and verification
+without confounding the comparison with generation randomness.
+
 | Configuration | Task success | Unsafe action | Invalid action | STOP rate | Avg tool calls / success |
 |---|---:|---:|---:|---:|---:|
 | LLM only | 52.8% | 16.7% | 0% | 41.7% | 0.47 |
@@ -165,13 +184,26 @@ The same bounded runtime also runs against a disposable SQLite environment.
 | + Verifier | 66.7% | 16.7% | 0% | 44.4% | 0.58 |
 | + Policy + Verifier | **83.3%** | **0%** | 0% | 61.1% | 0.47 |
 
+**Reading the tool-call column.** The average is below 1.0 by design: 16 of the
+36 cases are expected-`STOP` tasks that should invoke no tool at all. Reported
+by task class, all 8 expected-`KEEP` and all 12 expected-`REPAIR` tasks invoked
+the registered SQL tool exactly once, and all 16 expected-`STOP` tasks invoked
+none. The policy blocked unsafe actions before execution.
+
+**Why `+ Policy` and `+ Policy + Verifier` are identical.** On this suite the
+verifier changes no outcome once policy gating is active: every response the
+policy admits already satisfies the output contract. Verifier-only (without
+policy) improves correctness but does not reduce unsafe proposals. Policy is the
+component that eliminates unsafe execution; the verifier earns its place on the
+radiographic path, not on this suite.
+
+Schema and registry validation are still necessary execution boundaries, but all
+model outputs happened to satisfy them in this suite.
+
 Qwen3-8B averages 116 prompt tokens and 28 completion tokens per planner call,
 with 443 ms p50 and 594 ms p95 planner-generation latency; one cold-start
 request took 16.7 s. The harness permits at most one execution action per task
-and is not a multi-turn latency benchmark. Schema and registry validation are still necessary
-execution boundaries, but all model outputs happened to satisfy them in this
-suite. Verifier-only improves correctness without reducing unsafe proposals;
-policy is the component that eliminates unsafe execution.
+and is not a multi-turn latency benchmark.
 
 After policy gating, the six remaining failures shift away from unsafe action:
 five are repair proposals that fail during execution and one is a verifier
@@ -191,19 +223,14 @@ python scripts/evaluate_sql_harness_ablation.py \
   --output outputs/portfolio/sql_harness_ablation_qwen3_8b.json
 ```
 
-The script generates each model response once, then replays that identical
-response through all six harness configurations. This isolates the contribution
-of schema validation, registry checks, policy enforcement, and verification
-without confounding the ablation with generation randomness.
-
-Tool execution is reported by task class rather than as a misleading global
-average: all 8 expected-`KEEP` and all 12 expected-`REPAIR` tasks invoked the
-registered SQL tool once, while all 16 expected-`STOP` tasks invoked no tool.
-The policy blocked unsafe actions before execution. Full measurement conditions
-and percentile definitions are recorded in
-[Portfolio results](docs/PORTFOLIO_RESULTS.md#measurement-protocol).
+Full measurement conditions and percentile definitions are recorded in
+[Evaluation results](docs/PORTFOLIO_RESULTS.md#measurement-protocol).
 
 ### Independent repair proposal
+
+**This proposal stack is deliberately not a strong measurement model, and the
+numbers below are reported as a negative result.** They are the reason the
+cross-model safety gate exists.
 
 Live uploads keep the supervised ResNet angle model as the primary predictor.
 An independently trained HRNet landmark detector, residual RepairMLP, and
@@ -212,12 +239,11 @@ proposal only when both its verifier passes and its HVA/IMA outputs agree with
 the primary model within registered bounds; otherwise it records the attempted
 repair and returns `STOP` for review.
 
-The proposal stack is intentionally not described as a strong measurement
-model. On 243 patient-disjoint cases its raw HRNet errors are very large
+On 243 patient-disjoint cases the raw HRNet errors are very large
 (HVA 52.61°, IMA 71.96°). Gated one-step repair reduces these to 28.92° and
-24.67° with 83.1% coverage and 1.65% any-measurement harm, but remains unsuitable
-as the final predictor. This negative result is why the cross-model safety gate
-exists. See `outputs/research/hrnet_geometry_repair.json`.
+24.67° with 83.1% coverage and 1.65% any-measurement harm, but the stack remains
+unsuitable as the final predictor — which is exactly what the gate is there to
+enforce. See `outputs/research/hrnet_geometry_repair.json`.
 
 The live workflow also supports:
 
@@ -255,7 +281,9 @@ review. Every response distinguishes replay from live inference under
 
 The original HVAngleEst release split has no image overlap but does have patient
 overlap (85 train/validation, 42 train/test, and 9 validation/test patients).
-The preparation script creates a separate patient-disjoint 1,598-foot manifest:
+Models evaluated on that split can therefore see the same patient in training
+and test. The preparation script creates a separate patient-disjoint 1,598-foot
+manifest:
 
 | Split | Samples | Patients |
 |---|---:|---:|
@@ -303,9 +331,10 @@ curl http://127.0.0.1:8000/v1/capabilities
 
 ## MCP agent tools
 
-GeoMed exposes the same honest application boundary through a standard Python
-MCP server. The current server accepts only identifiers from the configured,
-hash-locked artifact; it does not claim live image inference.
+RadMeasure exposes the same honest application boundary through a standard
+Python MCP server (packaged as `geomed-mcp`). The current server accepts only
+identifiers from the configured, hash-locked artifact; it does not claim live
+image inference.
 
 ```bash
 pip install -e .
@@ -332,16 +361,20 @@ Tools:
 - `analyze_radiograph`: runs geometry verification, similar-case retrieval,
   evidence retrieval, citations, and per-tool traces for a locked case ID.
 
-## Five-minute portfolio demo
+## Five-minute demo
 
 ```bash
 docker compose up --build
 ```
 
-Open `http://localhost:8000`, select one of 176 persisted evaluation cases, and
-inspect predictions, targets, absolute errors, citations, provenance, and
-per-tool latency. The response explicitly reports that live inference is off
-and that current split alignment is unverified.
+Open `http://localhost:8000` and select one of 176 persisted evaluation cases.
+These cases come from a legacy prediction artifact produced under an earlier
+split state; when reconciled against the current manifest, they map to 122
+training, 24 validation, and 30 test records. They are therefore not presented
+as a subset of the newer 243-case patient-disjoint test split, and the dashboard
+reports the split alignment as unverified. Inspect predictions, targets,
+absolute errors, citations, provenance, and per-tool latency. The response
+explicitly reports that live inference is off.
 
 The dashboard submits a durable asynchronous job. The API writes an idempotent
 queued record, and a separate worker atomically claims it, runs the workflow,
@@ -359,24 +392,24 @@ Run a real uploaded-image job:
 
 ```bash
 curl -X POST http://localhost:8000/v1/uploads \
-  -H 'X-API-Key: operator-local' \
+  -H 'X-API-Key: <your-operator-key>' \
   -H 'Idempotency-Key: example-upload-001' \
   -F 'file=@/path/to/radiograph.jpg;type=image/jpeg'
 ```
 
-Local dashboard credentials are `operator-local`; they are deliberately scoped
-to the Compose demo. Protected API calls use `X-API-Key`. See
+Dashboard and API keys are supplied through the environment and are scoped to
+the Compose demo. Protected API calls use `X-API-Key`. See
 `docs/SECURITY_AND_OBSERVABILITY.md` before deploying outside localhost.
 
 The local medical-imaging UI is available at:
 
-- GeoMed upload/review dashboard: `http://localhost:8000`
+- Upload/review dashboard: `http://localhost:8000`
 - OHIF DICOM viewer: `http://127.0.0.1:3000`
 - Orthanc Explorer/DICOMWeb: `http://127.0.0.1:8042`
-- Local reviewer key: `reviewer-local`
 
-Orthanc and OHIF bind only to loopback. The included credentials and permissive
-local development assumptions must be replaced before any shared deployment.
+Orthanc and OHIF bind only to loopback. The development credentials in
+`.env.example` and the permissive local assumptions must be replaced before any
+shared deployment.
 
 ```bash
 PYTHONPATH=src python scripts/portfolio_benchmark.py --iterations 100
@@ -398,7 +431,22 @@ workflow latency. It is an engineering reliability check, not clinical validatio
 - No prospective or external clinical validation has been performed.
 - Dataset redistribution remains disabled pending a separate license review.
 
-See [Portfolio results](docs/PORTFOLIO_RESULTS.md),
+See [Evaluation results](docs/PORTFOLIO_RESULTS.md),
 [Security and observability](docs/SECURITY_AND_OBSERVABILITY.md), and
 [Engineering architecture](docs/ENGINEERING_ARCHITECTURE.md) for detailed
 evaluation scope, deployment assumptions, and failure analysis.
+
+## Author
+
+**Hongcheng Jiang** — Ph.D., Electrical & Computer Engineering,
+University of Missouri–Kansas City.
+
+[GitHub](https://github.com/jianghongcheng) ·
+[Website](https://jianghongcheng.github.io/) ·
+[Google Scholar](https://scholar.google.com/citations?user=NPk5cT0AAAAJ)
+
+RadMeasure originated from work at
+[NextTier IT Solutions Consultancy](https://www.nexttiertech.com/) and was later
+released publicly by the author.
+
+Released under the [MIT License](LICENSE).
