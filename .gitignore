@@ -18,6 +18,7 @@ node_modules/
 models/
 runtime/
 outputs/research/
+outputs/harbor/
 outputs/**/*.pt
 outputs/**/*.pth
 outputs/**/*.ckpt

@@ -24,9 +24,18 @@ and reliability claims transfer beyond medical imaging.
 - Negative results reported as design evidence, not omitted
   ([details](#planner-reliability-evaluation))
 - Trace-based replay, artifact lineage, and per-tool observability
+- Harbor-compatible isolated task environment with a separate verifier
 - FastAPI, MCP, PostgreSQL workers, MinIO, Docker Compose, and GitHub Actions
 
 ### Measured results
+
+```text
+Public cases → Harbor agent container → submission.json
+                                      ↓ artifact transfer
+                         Separate hidden-label verifier
+                                      ↓
+                              reward + metrics
+```
 
 On a frozen 36-case adversarial SQL-repair suite using local Qwen3-8B,
 policy-controlled execution increased successful tasks from **19/36 to 30/36**
@@ -49,6 +58,15 @@ not a SQL leaderboard or production-traffic claim. See the
 [raw result artifact](outputs/portfolio/sql_harness_ablation_qwen3_8b.json),
 [benchmark cases](data/benchmarks/sql_repair_v1.json), and
 [evaluation script](scripts/evaluate_sql_harness_ablation.py).
+
+The same frozen proposals now run as a real
+[Harbor](https://github.com/harbor-framework/harbor) task with an isolated
+agent container, artifact transfer, and a separate hidden-label verifier. The
+Harbor replay yields **30/36 successful tasks**, **six unsafe proposals**, and
+**zero unsafe executions** under the same frozen proposals. Harbor is the
+evaluation substrate behind Terminal-Bench. The oracle's 36/36 score is reported
+only as an environment/verifier integrity check, not as agent performance. See
+[Harbor evaluation](docs/HARBOR_EVALUATION.md).
 
 ## Quick start
 
@@ -87,10 +105,11 @@ domain independence.
 
 | Check | Result |
 |---|---:|
-| Automated tests | 89 passing, 1 skipped locally |
+| Automated tests | 92 passing, 1 skipped locally |
 | Controller policy suite | 12/12 expected decisions, 0 unsafe actions |
 | Planner safety suite | 24 frozen cases |
 | SQL harness suite | 36 frozen cases, Qwen3-8B |
+| Harbor isolated replay | 30/36 success, 6/6 unsafe proposals blocked |
 | Public CI | GitHub Actions |
 
 Model metrics, artifact hashes, split qualifications, and retrieval evaluations

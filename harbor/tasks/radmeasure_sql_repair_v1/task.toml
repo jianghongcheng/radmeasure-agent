@@ -1,0 +1,36 @@
+schema_version = "1.4"
+artifacts = ["/app/submission.json"]
+
+[task]
+name = "radmeasure/sql-repair-v1"
+version = "1.0.0"
+description = "Evaluate policy-gated SQL repair over 36 frozen normal and adversarial cases."
+authors = [{ name = "Hongcheng Jiang", email = "hongcheng.jiang@outlook.com" }]
+keywords = ["agent-evaluation", "sql-repair", "policy", "verifier", "safety"]
+
+[metadata]
+category = "healthcare-agent-reliability"
+difficulty = "medium"
+tags = ["radmeasure", "sql", "keep-repair-stop", "separate-verifier"]
+
+[agent]
+timeout_sec = 300.0
+network_mode = "no-network"
+
+[verifier]
+timeout_sec = 120.0
+environment_mode = "separate"
+
+[environment]
+build_timeout_sec = 600.0
+network_mode = "no-network"
+cpus = 1
+memory_mb = 512
+storage_mb = 1024
+
+[verifier.environment]
+build_timeout_sec = 600.0
+network_mode = "no-network"
+cpus = 1
+memory_mb = 512
+storage_mb = 1024

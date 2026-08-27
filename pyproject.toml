@@ -27,6 +27,7 @@ dev = [
   "python-multipart>=0.0.9,<1",
 ]
 prod = ["psycopg[binary]>=3.2,<4", "boto3>=1.35,<2", "pydicom>=3,<4"]
+harbor = ["harbor>=0.22,<1"]
 
 [project.scripts]
 geomed-copilot = "geomed_copilot.cli:main"

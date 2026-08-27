@@ -23,6 +23,14 @@ Built RadMeasure, a verifiable multimodal agent platform that constrains LLM
 planning through registered protocols, deterministic geometry tools,
 `KEEP / REPAIR / STOP` safety policies, and end-to-end auditable replay.
 
+## Harbor evaluation version
+
+Packaged the reliability suite as a **Harbor-compatible evaluation environment**
+(the substrate behind Terminal-Bench) with separate agent/verifier containers,
+hidden labels, and network-isolated execution; on the frozen **36-case**
+SQL-repair suite, policy gating raised task success from **19/36 to 30/36** and
+blocked **6/6 unsafe proposals**, with **92 tests** in public CI.
+
 ## Claim guardrails
 
 Do not describe RadMeasure as an autonomous radiology agent, a clinically
