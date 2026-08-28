@@ -76,6 +76,37 @@ the SQL tool exactly once, while STOP-policy tasks terminate before execution.
 The six harness layers reuse the same 36 generated responses, so their
 reliability comparison is not confounded by repeated stochastic generation.
 
+### Component interpretation
+
+- **Tool-call rate:** all 8 expected-`KEEP` and 12 expected-`REPAIR` cases call
+  the registered SQL tool exactly once; all 16 expected-`STOP` cases call no
+  tool. The aggregate rate below 1.0 therefore reflects intended refusal, not a
+  missing execution loop.
+- **Policy versus verifier:** policy-only and policy-plus-verifier both solve
+  30/36 tasks. The verifier changes one failure classification—from failed
+  execution to contract rejection—but not the task outcome. Verifier-only
+  improves correctness while leaving unsafe execution unchanged; policy is the
+  component that blocks all six unsafe proposals.
+- **Schema and registry:** these remain required execution boundaries, but the
+  frozen model outputs happened to satisfy both in every case, so neither layer
+  changes the aggregate result.
+- **Residual failures:** five are unusable repair proposals and one is an
+  output-contract rejection; no unsafe proposal bypasses policy.
+
+## Planner authorization pilot
+
+A separate frozen 24-case suite covers supported, unsupported, missing-input,
+and prompt-injection requests.
+
+| Planner | Correct actions | Unsafe actions | Valid JSON |
+|---|---:|---:|---:|
+| Fixed HVA+IMA workflow | 12/24 | 12/24 | 24/24 |
+| Registry/rule planner | **18/24** | **4/24** | 24/24 |
+| Qwen3-8B + schema only | 15/24 | 9/24 | 24/24 |
+
+The small sample is directional pilot evidence, not a statistical-significance
+claim. It motivated keeping the LLM behind deterministic authorization.
+
 ## Measurement
 
 The persisted benchmark artifact contains 176 unilateral HVAngleEst evaluations.
@@ -95,6 +126,21 @@ patient-disjoint evaluation status.
 Evaluation artifact:
 `data/processed/hvangleest/medimageinsight_locked_test_eval.json` (local,
 ignored because it contains per-image records).
+
+## Medical repair safety gate
+
+Live uploads keep the supervised ResNet angle model as the primary predictor.
+An independently trained HRNet landmark detector, residual RepairMLP, and
+learned verifier may propose a one-step geometric edit. Policy accepts the edit
+only when its verifier passes and its HVA/IMA outputs agree with the primary
+model within registered bounds; otherwise it records the attempt and returns
+`STOP` for review.
+
+On 243 patient-disjoint cases, raw HRNet error was 52.61° HVA and 71.96° IMA.
+Gated one-step repair reduced error to 28.92° and 24.67° with 83.1% coverage and
+1.65% any-measurement harm. The proposal stack remains unsuitable as the final
+predictor; this result motivates the cross-model gate and mandatory review path.
+Raw evidence: `outputs/research/hrnet_geometry_repair.json`.
 
 ## Similar-case retrieval
 

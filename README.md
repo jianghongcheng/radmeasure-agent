@@ -5,8 +5,9 @@ radiographic measurement and SQL repair.**
 
 RadMeasure combines LLM planning, policy-gated tools, deterministic execution,
 verification, replay, and frozen evaluations. Radiographic measurement is the
-primary safety-critical workload. The same runtime also supports SQL repair as
-an executable non-medical workload for validating the authorization boundary.
+primary safety-critical workload. The same execution runtime also supports SQL
+repair, providing a second tool domain for stress-testing policy enforcement
+and replay.
 
 ## What it does
 
@@ -132,8 +133,9 @@ Trace + replay + evals
 The planner may use an OpenAI-compatible endpoint or local Ollama, but
 its JSON output is never executed directly. Every protocol, tool, and repair
 action is checked against the registry. Invalid model output and unsupported
-requests fail closed with `STOP`. The deterministic fallback keeps the complete
-workflow runnable without a hosted model.
+requests fail closed with `STOP`. The runtime also supports an explicitly
+selected deterministic planner, allowing the complete workflow to run without
+a hosted LLM.
 
 ```bash
 export RADMEASURE_PLANNER_BASE_URL=http://127.0.0.1:8080/v1
@@ -162,136 +164,41 @@ API keys are read from the environment; see `.env.example` for the variables
 the Compose demo expects. No usable credentials are committed to this
 repository.
 
-## Evaluation evidence
+## Measured reliability
 
 The engineering claims above are exercised with frozen, reproducible suites;
-they are not production-traffic or clinical-validation claims. On a 36-case
-adversarial SQL-repair suite using local Qwen3-8B, policy-controlled execution
-increased successful tasks from **19/36 to 30/36** and blocked **all six unsafe
-actions proposed by the model**. The six remaining failures were five unusable
-repair proposals and one output-contract rejection, not policy bypasses.
+they are not production-traffic or clinical-validation claims. For the SQL
+ablation, Qwen3-8B generated each proposal once and the evaluator replayed that
+identical proposal through every configuration.
 
 | Configuration | Successful tasks | Unsafe actions executed |
 |---|---:|---:|
 | LLM only | 19/36 | 6/36 |
 | Policy + verifier | **30/36** | **0/36** |
 
-The same frozen proposals run as a
-[Harbor](https://github.com/harbor-framework/harbor) task with an isolated agent
-container, artifact transfer, and a separate hidden-label verifier. Harbor is
-the evaluation substrate behind Terminal-Bench. The oracle's 36/36 score is an
-environment/verifier integrity check, not agent performance. See the
-[raw result artifact](outputs/portfolio/sql_harness_ablation_qwen3_8b.json),
-[benchmark cases](data/benchmarks/sql_repair_v1.json),
-[evaluation script](scripts/evaluate_sql_harness_ablation.py), and
-[Harbor evaluation](docs/HARBOR_EVALUATION.md).
+Policy is the component that eliminates unsafe execution. The same frozen
+proposals also run in a [Harbor](https://github.com/harbor-framework/harbor)
+environment with an isolated agent container and hidden-label verifier. See the
+[detailed ablation and measurement protocol](docs/PORTFOLIO_RESULTS.md#cross-domain-agent-reliability)
+and [Harbor evaluation](docs/HARBOR_EVALUATION.md).
 
-The self-hosted planner measured **443 ms p50** and **594 ms p95
-planner-generation latency**, with one 16.7 s cold start and an average of 116
-prompt plus 28 completion tokens per call. Because the benchmark is a bounded
-single-action runtime, these are not multi-turn end-to-end latency or
-full-trajectory cost claims.
+### Planner authorization pilot
 
-## Planner reliability evaluation
+On a separate frozen 24-case safety pilot, the registry planner produced 18/24
+correct and 4/24 unsafe actions versus 15/24 and 9/24 for Qwen3-8B. This
+directional result—not a significance claim—keeps the LLM as an optional intent
+proposer rather than an execution authority. Detailed cases and limitations are
+reported in [Evaluation results](docs/PORTFOLIO_RESULTS.md#planner-authorization-pilot).
 
-A frozen 24-case benchmark compares a fixed workflow, the deterministic
-registry planner, and local `qwen3:8b` on supported, unsupported, missing-input,
-and prompt-injection requests.
+### Medical repair safety gate
 
-| Planner | Correct actions | Unsafe actions | Valid JSON |
-|---|---:|---:|---:|
-| Fixed HVA+IMA workflow | 12/24 | 12/24 | 24/24 |
-| Registry/rule planner | **18/24** | **4/24** | 24/24 |
-| Qwen3-8B + schema only | 15/24 | 9/24 | 24/24 |
-
-Safety testing drove the architecture toward deterministic authorization:
-Qwen3-8B produces structured plans but does not beat the rule planner, so the
-LLM remains an optional intent proposer rather than an execution authority. A separate
-12-case policy-unit suite verifies all expected controller decisions with zero
-unsafe actions and deterministic replay. These are agent-reliability tests, not
-clinical performance claims. The 24-case result is directional pilot evidence,
-not a statistical-significance claim. Raw results live under
-`outputs/portfolio/`.
-
-### Cross-domain SQL harness
-
-The same bounded runtime also runs against a disposable SQLite environment.
-
-The ablation generates each model response **once**, then replays that identical
-response through all six harness configurations. This isolates the contribution
-of schema validation, registry checks, policy enforcement, and verification
-without confounding the comparison with generation randomness.
-
-| Configuration | Task success | Unsafe action | Invalid action | STOP rate | Avg tool calls / success |
-|---|---:|---:|---:|---:|---:|
-| LLM only | 52.8% | 16.7% | 0% | 41.7% | 0.47 |
-| + Schema | 52.8% | 16.7% | 0% | 41.7% | 0.47 |
-| + Registry | 52.8% | 16.7% | 0% | 41.7% | 0.47 |
-| + Policy | **83.3%** | **0%** | 0% | 61.1% | 0.47 |
-| + Verifier | 66.7% | 16.7% | 0% | 44.4% | 0.58 |
-| + Policy + Verifier | **83.3%** | **0%** | 0% | 61.1% | 0.47 |
-
-**Reading the tool-call column.** The average is below 1.0 by design: 16 of the
-36 cases are expected-`STOP` tasks that should invoke no tool at all. Reported
-by task class, all 8 expected-`KEEP` and all 12 expected-`REPAIR` tasks invoked
-the registered SQL tool exactly once, and all 16 expected-`STOP` tasks invoked
-none. The policy blocked unsafe actions before execution.
-
-**Why `+ Policy` and `+ Policy + Verifier` are identical.** Once policy gating
-is active the verifier changes no task outcome on this suite—the same 30 tasks
-succeed either way. It does change how one failure is classified: a contract
-rejection rather than a failed execution. Verifier-only, without policy,
-improves correctness but leaves the unsafe-action rate unchanged. Policy is the
-component that eliminates unsafe execution; the verifier earns its place on the
-radiographic path, not on this suite.
-
-Schema and registry validation are still necessary execution boundaries, but all
-model outputs happened to satisfy them in this suite.
-
-Qwen3-8B averages 116 prompt tokens and 28 completion tokens per planner call,
-with 443 ms p50 and 594 ms p95 planner-generation latency; one cold-start
-request took 16.7 s. The harness permits at most one execution action per task
-and is not a multi-turn latency benchmark.
-
-After policy gating, the six remaining failures shift away from unsafe action:
-five are repair proposals that fail during execution and one is a verifier
-contract rejection. No unsafe proposal passes the policy.
-
-This is deliberately a small frozen engineering benchmark, not evidence of SQL SOTA.
-It demonstrates that the runtime abstraction and safety result transfer beyond
-radiography. See `outputs/portfolio/sql_harness_ablation_qwen3_8b.json`.
-
-Reproduce the ablation with a local Ollama-compatible Qwen3-8B endpoint:
-
-```bash
-ollama pull qwen3:8b
-python scripts/evaluate_sql_harness_ablation.py \
-  --model qwen3:8b \
-  --base-url http://127.0.0.1:11434 \
-  --output outputs/portfolio/sql_harness_ablation_qwen3_8b.json
-```
-
-Full measurement conditions and percentile definitions are recorded in
-[Evaluation results](docs/PORTFOLIO_RESULTS.md#measurement-protocol).
-
-### Independent repair proposal
-
-**Safety evaluation found that this proposal stack is not reliable enough to
-serve as the final measurement model.** This result is why the cross-model gate
-and mandatory review path exist.
-
-Live uploads keep the supervised ResNet angle model as the primary predictor.
-An independently trained HRNet landmark detector, residual RepairMLP, and
-learned verifier may propose a one-step geometric edit. The policy accepts that
-proposal only when both its verifier passes and its HVA/IMA outputs agree with
-the primary model within registered bounds; otherwise it records the attempted
-repair and returns `STOP` for review.
-
-On 243 patient-disjoint cases the raw HRNet errors are very large
-(HVA 52.61°, IMA 71.96°). Gated one-step repair reduces these to 28.92° and
-24.67° with 83.1% coverage and 1.65% any-measurement harm, but the stack remains
-unsuitable as the final predictor — which is exactly what the gate is there to
-enforce. See `outputs/research/hrnet_geometry_repair.json`.
+An independent HRNet/RepairMLP stack may propose a one-step edit, but the policy
+accepts it only when verification and cross-model agreement pass registered
+bounds; otherwise the case routes to review. On 243 patient-disjoint cases this
+gate reduced the weak proposal model's error while limiting harm, but remained
+unsuitable as the final predictor. See the
+[detailed medical evaluation](docs/PORTFOLIO_RESULTS.md#medical-repair-safety-gate)
+and `outputs/research/hrnet_geometry_repair.json`.
 
 The live workflow also supports:
 
