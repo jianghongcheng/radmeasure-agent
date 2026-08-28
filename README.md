@@ -5,8 +5,8 @@ radiographic measurement and SQL repair.**
 
 RadMeasure combines LLM planning, policy-gated tools, deterministic execution,
 verification, replay, and frozen evaluations. Radiographic measurement is the
-primary safety-critical environment; SQL repair tests whether the same runtime
-and reliability claims transfer beyond medical imaging.
+primary safety-critical workload. The same runtime also supports SQL repair as
+an executable non-medical workload for validating the authorization boundary.
 
 ## What it does
 
@@ -86,15 +86,14 @@ before any shared deployment. See
 [Security and observability](docs/SECURITY_AND_OBSERVABILITY.md) and
 [Engineering architecture](docs/ENGINEERING_ARCHITECTURE.md).
 
-## What is reusable
+## Safety and execution model
 
-The runtime is evaluated in two deliberately different environments:
-radiographic measurement and executable SQL repair. Its reusable systems contribution is a
-bounded agent pattern in which an LLM proposes a registered action, a policy
-layer authorizes or rejects it, deterministic tools execute it, and a verifier
-chooses `KEEP`, `REPAIR`, or `STOP`. The SQL suite provides bounded cross-domain
-evidence for the runtime and its safety policy; it does not establish broad
-domain independence.
+The runtime uses the same bounded execution path for radiographic measurement
+and SQL repair: an LLM proposes a registered action, a policy layer authorizes
+or rejects it, deterministic tools execute it, and a verifier chooses `KEEP`,
+`REPAIR`, or `STOP`. The SQL workload stress-tests this execution and
+authorization path outside the radiography stack; it does not imply that every
+domain is supported without a registered tool and policy.
 
 ## Engineering evidence
 
@@ -110,7 +109,7 @@ domain independence.
 Model metrics, artifact hashes, split qualifications, and retrieval evaluations
 are reported separately in [Evaluation results](docs/PORTFOLIO_RESULTS.md).
 
-## Workflow
+## Authorization path
 
 ```text
 User goal
@@ -205,9 +204,9 @@ and prompt-injection requests.
 | Registry/rule planner | **18/24** | **4/24** | 24/24 |
 | Qwen3-8B + schema only | 15/24 | 9/24 | 24/24 |
 
-The negative result is intentional evidence, not a hidden model claim. Qwen3-8B
-produces structured plans but does not beat the rule planner, so the LLM remains
-an optional intent proposer behind deterministic authorization. A separate
+Safety testing drove the architecture toward deterministic authorization:
+Qwen3-8B produces structured plans but does not beat the rule planner, so the
+LLM remains an optional intent proposer rather than an execution authority. A separate
 12-case policy-unit suite verifies all expected controller decisions with zero
 unsafe actions and deterministic replay. These are agent-reliability tests, not
 clinical performance claims. The 24-case result is directional pilot evidence,
@@ -277,9 +276,9 @@ Full measurement conditions and percentile definitions are recorded in
 
 ### Independent repair proposal
 
-**This proposal stack is deliberately not a strong measurement model, and the
-numbers below are reported as a negative result.** They are the reason the
-cross-model safety gate exists.
+**Safety evaluation found that this proposal stack is not reliable enough to
+serve as the final measurement model.** This result is why the cross-model gate
+and mandatory review path exist.
 
 Live uploads keep the supervised ResNet angle model as the primary predictor.
 An independently trained HRNet landmark detector, residual RepairMLP, and
