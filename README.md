@@ -8,65 +8,53 @@ verification, replay, and frozen evaluations. Radiographic measurement is the
 primary safety-critical environment; SQL repair tests whether the same runtime
 and reliability claims transfer beyond medical imaging.
 
-> **Naming note.** `RadMeasure` is the project name. `geomed_copilot` is the
-> Python package name, and the service, MCP server, and `GEOMED_*` environment
-> variables inherit that prefix. They refer to the same system. Planner
-> configuration uses the `RADMEASURE_PLANNER_*` variables; data and artifact
-> paths use `GEOMED_*`.
+## What it does
 
-### Highlights
-
-- Deterministic geometry instead of LLM-generated measurements
-- LLM planner with registry- and policy-constrained tool execution
-- `KEEP / REPAIR / STOP` verification with mandatory human-review paths
-- Caught patient-level leakage in the public HVAngleEst release split and
-  rebuilt a patient-disjoint manifest ([details](#data-integrity))
-- Negative results reported as design evidence, not omitted
-  ([details](#planner-reliability-evaluation))
-- Trace-based replay, artifact lineage, and per-tool observability
-- Harbor-compatible isolated task environment with a separate verifier
-- FastAPI, MCP, PostgreSQL workers, MinIO, Docker Compose, and GitHub Actions
-
-### Measured results
+RadMeasure turns an authorized measurement request into a durable, auditable
+job. An LLM may propose an intent, but it cannot execute arbitrary output. The
+runtime validates the plan against registered protocols, applies policy before
+tool execution, runs deterministic tools behind a service boundary, verifies
+the result, and routes uncertain cases to review.
 
 ```text
-Public cases → Harbor agent container → submission.json
-                                      ↓ artifact transfer
-                         Separate hidden-label verifier
-                                      ↓
-                              reward + metrics
+API / MCP client
+       |
+       v
+FastAPI control plane -- API-key roles -- idempotency
+       |
+       v
+PostgreSQL job queue -- atomic claim -- bounded retry / lease recovery
+       |
+       v
+Worker pool -- registered tools -- isolated inference service
+       |
+       v
+Verifier -- KEEP / REPAIR / STOP -- human review
+       |
+       v
+MinIO artifacts -- audit lineage -- replay -- Prometheus metrics
 ```
 
-On a frozen 36-case adversarial SQL-repair suite using local Qwen3-8B,
-policy-controlled execution increased successful tasks from **19/36 to 30/36**
-and blocked **all six unsafe actions proposed by the model**. The six remaining
-failures were five unusable repair proposals and one output-contract rejection,
-not policy bypasses.
+### Operational guarantees in the reference deployment
 
-| Configuration | Successful tasks | Unsafe actions executed |
-|---|---:|---:|
-| LLM only | 19/36 | 6/36 |
-| Policy + verifier | **30/36** | **0/36** |
+- **Durable execution:** idempotent submission, PostgreSQL-backed job state,
+  atomic concurrent-worker claims, bounded retries, leases, and crash recovery.
+- **Constrained action boundary:** schema and registry validation plus
+  policy authorization before any tool invocation; unsupported actions fail
+  closed.
+- **Service isolation:** workers call a separately deployed inference service;
+  failures exhaust a bounded retry budget without fabricated fallbacks.
+- **Artifact integrity:** content-addressed, deduplicated MinIO storage with
+  model version, backend, and artifact-hash provenance.
+- **Access and review controls:** API-key roles, internal service
+  authentication, and mandatory review paths for uncertain medical outputs.
+- **Operations:** correlated structured logs, protected Prometheus metrics,
+  trace lineage, parent-linked replay, Docker Compose, and public CI.
 
-The self-hosted Ollama/Qwen3-8B run measured **443 ms p50** and **594 ms p95
-planner-generation latency**. One cold-start request took 16.7 s. The single
-planner call averaged 116 prompt and 28 completion tokens. This benchmark uses
-a bounded single-action runtime, so these are not multi-turn agent latency or
-full-trajectory token-cost claims.
-This is a small, frozen agent-reliability benchmark,
-not a SQL leaderboard or production-traffic claim. See the
-[raw result artifact](outputs/portfolio/sql_harness_ablation_qwen3_8b.json),
-[benchmark cases](data/benchmarks/sql_repair_v1.json), and
-[evaluation script](scripts/evaluate_sql_harness_ablation.py).
+> **LLM proposes. Policy authorizes. Deterministic tools execute. Verifier decides.**
 
-The same frozen proposals now run as a real
-[Harbor](https://github.com/harbor-framework/harbor) task with an isolated
-agent container, artifact transfer, and a separate hidden-label verifier. The
-Harbor replay yields **30/36 successful tasks**, **six unsafe proposals**, and
-**zero unsafe executions** under the same frozen proposals. Harbor is the
-evaluation substrate behind Terminal-Bench. The oracle's 36/36 score is reported
-only as an environment/verifier integrity check, not as agent performance. See
-[Harbor evaluation](docs/HARBOR_EVALUATION.md).
+> Research prototype only. It is not a medical device and must not be used for
+> diagnosis or patient care.
 
 ## Quick start
 
@@ -84,6 +72,20 @@ accordingly; no model checkpoint or medical data is required. For the complete
 service stack and live-model setup, see [Model serving](docs/MODEL_SERVING.md)
 and the [five-minute demo](#five-minute-demo).
 
+Run the complete reference deployment:
+
+```bash
+cp .env.example .env
+docker compose up --build
+```
+
+Compose starts the FastAPI control plane, PostgreSQL job store, concurrent
+workers, MinIO artifact storage, isolated inference service, and local review
+UI. The credentials in `.env.example` are development-only and must be replaced
+before any shared deployment. See
+[Security and observability](docs/SECURITY_AND_OBSERVABILITY.md) and
+[Engineering architecture](docs/ENGINEERING_ARCHITECTURE.md).
+
 ## What is reusable
 
 The runtime is evaluated in two deliberately different environments:
@@ -93,13 +95,6 @@ layer authorizes or rejects it, deterministic tools execute it, and a verifier
 chooses `KEEP`, `REPAIR`, or `STOP`. The SQL suite provides bounded cross-domain
 evidence for the runtime and its safety policy; it does not establish broad
 domain independence.
-
-> **LLM proposes. Policy authorizes. Deterministic tools execute. Verifier decides.**
-
-<!-- Keep the design principle and safety disclaimer as separate callouts. -->
-
-> Research prototype only. It is not a medical device and must not be used for
-> diagnosis or patient care.
 
 ## Engineering evidence
 
@@ -168,24 +163,56 @@ API keys are read from the environment; see `.env.example` for the variables
 the Compose demo expects. No usable credentials are committed to this
 repository.
 
+## Evaluation evidence
+
+The engineering claims above are exercised with frozen, reproducible suites;
+they are not production-traffic or clinical-validation claims. On a 36-case
+adversarial SQL-repair suite using local Qwen3-8B, policy-controlled execution
+increased successful tasks from **19/36 to 30/36** and blocked **all six unsafe
+actions proposed by the model**. The six remaining failures were five unusable
+repair proposals and one output-contract rejection, not policy bypasses.
+
+| Configuration | Successful tasks | Unsafe actions executed |
+|---|---:|---:|
+| LLM only | 19/36 | 6/36 |
+| Policy + verifier | **30/36** | **0/36** |
+
+The same frozen proposals run as a
+[Harbor](https://github.com/harbor-framework/harbor) task with an isolated agent
+container, artifact transfer, and a separate hidden-label verifier. Harbor is
+the evaluation substrate behind Terminal-Bench. The oracle's 36/36 score is an
+environment/verifier integrity check, not agent performance. See the
+[raw result artifact](outputs/portfolio/sql_harness_ablation_qwen3_8b.json),
+[benchmark cases](data/benchmarks/sql_repair_v1.json),
+[evaluation script](scripts/evaluate_sql_harness_ablation.py), and
+[Harbor evaluation](docs/HARBOR_EVALUATION.md).
+
+The self-hosted planner measured **443 ms p50** and **594 ms p95
+planner-generation latency**, with one 16.7 s cold start and an average of 116
+prompt plus 28 completion tokens per call. Because the benchmark is a bounded
+single-action runtime, these are not multi-turn end-to-end latency or
+full-trajectory cost claims.
+
 ## Planner reliability evaluation
 
 A frozen 24-case benchmark compares a fixed workflow, the deterministic
 registry planner, and local `qwen3:8b` on supported, unsupported, missing-input,
 and prompt-injection requests.
 
-| Planner | Action accuracy | Unsafe action rate | Valid JSON |
+| Planner | Correct actions | Unsafe actions | Valid JSON |
 |---|---:|---:|---:|
-| Fixed HVA+IMA workflow | 50.0% | 50.0% | 100% |
-| Registry/rule planner | **75.0%** | **16.7%** | 100% |
-| Qwen3-8B + schema only | 62.5% | 37.5% | 100% |
+| Fixed HVA+IMA workflow | 12/24 | 12/24 | 24/24 |
+| Registry/rule planner | **18/24** | **4/24** | 24/24 |
+| Qwen3-8B + schema only | 15/24 | 9/24 | 24/24 |
 
 The negative result is intentional evidence, not a hidden model claim. Qwen3-8B
 produces structured plans but does not beat the rule planner, so the LLM remains
 an optional intent proposer behind deterministic authorization. A separate
 12-case policy-unit suite verifies all expected controller decisions with zero
 unsafe actions and deterministic replay. These are agent-reliability tests, not
-clinical performance claims. Raw results live under `outputs/portfolio/`.
+clinical performance claims. The 24-case result is directional pilot evidence,
+not a statistical-significance claim. Raw results live under
+`outputs/portfolio/`.
 
 ### Cross-domain SQL harness
 
@@ -285,6 +312,12 @@ review. Every response distinguishes replay from live inference under
 `provenance`; neither path is approved for clinical use.
 
 ## Repository contents
+
+> **Naming note.** `RadMeasure` is the project name. `geomed_copilot` is the
+> Python package name, and the service, MCP server, and `GEOMED_*` environment
+> variables inherit that prefix. They refer to the same system. Planner
+> configuration uses the `RADMEASURE_PLANNER_*` variables; data and artifact
+> paths use `GEOMED_*`.
 
 - `artifact_predictor.py`: hash-verified three-seed axis ensemble replay;
 - `geometry.py`: independent acute-angle reconstruction;

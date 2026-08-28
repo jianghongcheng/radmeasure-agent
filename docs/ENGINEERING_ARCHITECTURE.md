@@ -39,8 +39,11 @@ Unit tests use SQLite and a local artifact directory. The Docker deployment uses
 - two independently running workers with bounded leases;
 - S3-compatible MinIO with SHA-256 keys and deduplicated uploads.
 
-Still pending: a separately scaled GPU inference service, authentication,
-managed queue backpressure, and OpenTelemetry/Prometheus operations.
+The reference deployment now includes API-key roles, internal inference-service
+authentication, correlated structured logs, and a protected Prometheus metrics
+endpoint. Still pending for a shared production deployment: OIDC/OAuth identity
+integration and key lifecycle management, managed queue backpressure,
+horizontally scaled GPU serving, and distributed OpenTelemetry export.
 
 ## Integration evidence
 
