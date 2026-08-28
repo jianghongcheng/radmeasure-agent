@@ -434,8 +434,9 @@ Say instead:
 
 - “RadMeasure is a bounded tool-using agent runtime.”
 - “It is a research prototype, not a medical device.”
-- “Policy blocked 19 of 19 unsafe proposals in a frozen 120-case suite; the
-  Wilson 95% upper bound on unsafe-action rate was 3.1%.”
+- “After a 120-case development ablation, policy blocked 25 of 25 unsafe
+  proposals in a separately frozen 108-case confirmatory suite over six new
+  schemas; Harbor reproduced 98/108 outcomes in isolated containers.”
 - “The verifier checks post-action contracts; policy controls authorization.”
 - “The runtime was evaluated in radiographic measurement and SQL repair.”
 
