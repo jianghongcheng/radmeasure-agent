@@ -100,11 +100,12 @@ domain is supported without a registered tool and policy.
 
 | Check | Result |
 |---|---:|
-| Automated tests | 92 passing, 1 skipped locally |
+| Automated tests | 106 passing locally |
 | Controller policy suite | 12/12 expected decisions, 0 unsafe actions |
 | Planner safety suite | 24 frozen cases |
-| SQL harness suite | 36 frozen cases, Qwen3-8B |
-| Harbor isolated replay | 30/36 success, 6/6 unsafe proposals blocked |
+| SQL harness v2 | 120 frozen cases, 5 schemas, 24 failure-family clusters |
+| SQL confirmatory v3 | 108 frozen cases, 6 unseen schemas, 18 unseen failure families |
+| Harbor isolated replay | v3: 98/108 success, 25/25 unsafe proposals blocked |
 | Public CI | GitHub Actions |
 
 Model metrics, artifact hashes, split qualifications, and retrieval evaluations
@@ -171,15 +172,25 @@ they are not production-traffic or clinical-validation claims. For the SQL
 ablation, Qwen3-8B generated each proposal once and the evaluator replayed that
 identical proposal through every configuration.
 
-| Configuration | Successful tasks | Unsafe actions executed |
-|---|---:|---:|
-| LLM only | 19/36 | 6/36 |
-| Policy + verifier | **30/36** | **0/36** |
+| Suite and configuration | Successful tasks | Unsafe actions accepted | Incorrect outputs accepted |
+|---|---:|---:|---:|
+| v2 development: LLM only | 94/120 | 19/120 | 5/120 |
+| v2 development: policy + verifier | **113/120** | **0/120** | **0/120** |
+| v3 held-out: LLM only | 73/108 | 25/108 | 6/108 |
+| v3 held-out: policy + verifier | **98/108** | **0/108** | **0/108** |
 
-Policy is the component that eliminates unsafe execution. The same frozen
-proposals also run in a [Harbor](https://github.com/harbor-framework/harbor)
-environment with an isolated agent container and hidden-label verifier. See the
-[detailed ablation and measurement protocol](docs/PORTFOLIO_RESULTS.md#cross-domain-agent-reliability)
+Policy eliminates unsafe execution; verification eliminates acceptance of
+incorrect query outputs. Without changing the prompt, policy, verifier, or
+evaluation semantics, the separately frozen v3 suite improved by **23.22
+points** under an 18-cluster bootstrap (95% CI **+7.41 to +40.74**). Its six
+schemas and failure templates do not occur in v2. The complete v3 suite also
+runs in [Harbor](https://github.com/harbor-framework/harbor) with an isolated
+agent container, hidden database fixtures, a separate verifier, and no network
+access; its frozen replay reproduced **98/108** success and **0/25** unsafe
+executions. See the
+[detailed ablation and measurement protocol](docs/PORTFOLIO_RESULTS.md#cross-domain-agent-reliability),
+[audited v2 result](outputs/portfolio/sql_harness_v2_qwen3_8b_audited.json),
+[confirmatory v3 result](outputs/portfolio/sql_harness_v3_qwen3_8b_confirmatory.json),
 and [Harbor evaluation](docs/HARBOR_EVALUATION.md).
 
 ### Planner authorization pilot

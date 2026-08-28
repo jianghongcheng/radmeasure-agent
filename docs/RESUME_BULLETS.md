@@ -13,9 +13,10 @@
 - Productionized PyTorch inference behind authenticated FastAPI services with
   durable PostgreSQL workers, idempotent jobs, content-addressed MinIO storage,
   retries, circuit breaking, structured traces, Docker Compose, and CI.
-- Reduced unsafe SQL actions from 16.7% to 0% while improving task success from
-  52.8% to 83.3% through policy-gated execution on 36 frozen cases; attributed
-  all remaining failures to repair proposal execution or contract rejection.
+- Without retuning, evaluated a separately frozen 108-case confirmatory suite
+  across six schemas absent from development: raised task success from 73/108
+  to 98/108, blocked 25/25 unsafe proposals, and rejected all six incorrect
+  outputs; the paired cluster-bootstrap 95% interval was +7.4 to +40.7 points.
 
 ## One-line version
 
@@ -27,9 +28,10 @@ planning through registered protocols, deterministic geometry tools,
 
 Packaged the reliability suite as a **Harbor-compatible evaluation environment**
 (the substrate behind Terminal-Bench) with separate agent/verifier containers,
-hidden labels, and network-isolated execution; on the frozen **36-case**
-SQL-repair suite, policy gating raised task success from **19/36 to 30/36** and
-blocked **6/6 unsafe proposals**, with **92 tests** in public CI.
+hidden labels, network-isolated execution, and hidden database fixtures; the
+frozen v3 replay reproduced **98/108** successful tasks and blocked **25/25**
+unsafe proposals, with an oracle verifier check of **108/108** and **106 tests**
+locally.
 
 ## Claim guardrails
 

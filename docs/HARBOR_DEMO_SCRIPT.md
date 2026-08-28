@@ -13,7 +13,7 @@ Show the README architecture and say:
 Show the command and let the terminal output remain visible:
 
 ```bash
-./scripts/run_harbor_sql_suite.sh frozen
+./scripts/run_harbor_sql_suite.sh v3-frozen
 ```
 
 While it builds/runs, point out:
@@ -27,9 +27,10 @@ While it builds/runs, point out:
 
 Open the generated `verifier/metrics.json` and show:
 
-- 30/36 successful tasks after policy and verification;
-- six unsafe proposals and zero unsafe executions;
-- five unusable SQL repairs and one output-contract mismatch;
+- the confirmatory Harbor v3 replay: 98/108 successful tasks after policy and
+  verification;
+- 25 unsafe proposals and zero unsafe executions;
+- six output-contract rejections and four wrong-action outcomes;
 - the separate 24-case result where the deterministic rule planner beats
   Qwen3-8B (75.0% vs. 62.5% action accuracy).
 
@@ -42,7 +43,7 @@ Say explicitly:
 
 Say:
 
-> This is a small frozen agent-reliability benchmark, not a SQL leaderboard.
+> This is a frozen agent-reliability benchmark, not a SQL leaderboard.
 > Radiography is the safety-critical application environment. RadMeasure is a
 > research prototype, not a medical device and not approved for patient care.
 

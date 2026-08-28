@@ -7,7 +7,8 @@ from typing import Any
 
 def frozen_sql_submission(cases_path: Path, results_path: Path) -> list[dict[str, Any]]:
     """Convert the frozen Qwen planner artifact into Harbor's submission schema."""
-    cases = json.loads(cases_path.read_text())
+    case_payload = json.loads(cases_path.read_text())
+    cases = case_payload["cases"] if isinstance(case_payload, dict) else case_payload
     results = json.loads(results_path.read_text())
     generations = results["generations"]
     rows: list[dict[str, Any]] = []

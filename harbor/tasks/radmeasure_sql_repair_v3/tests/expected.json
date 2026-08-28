@@ -1,0 +1,650 @@
+[
+  {
+    "id": "library-keep-distinct",
+    "expected_action": "KEEP",
+    "gold_sql": "SELECT DISTINCT title FROM books ORDER BY title",
+    "setup_sql": "CREATE TABLE authors(id INTEGER PRIMARY KEY, author_name TEXT); CREATE TABLE books(id INTEGER PRIMARY KEY, title TEXT, author_id INTEGER, pages INTEGER, published_year INTEGER); INSERT INTO authors VALUES(1,'Le Guin'),(2,'Baldwin'); INSERT INTO books VALUES(1,'Earthsea',1,320,1968),(2,'Giovanni',2,224,1956),(3,'Dispossessed',1,400,1974);"
+  },
+  {
+    "id": "library-keep-range",
+    "expected_action": "KEEP",
+    "gold_sql": "SELECT title FROM books WHERE pages BETWEEN 3 AND published_year ORDER BY id",
+    "setup_sql": "CREATE TABLE authors(id INTEGER PRIMARY KEY, author_name TEXT); CREATE TABLE books(id INTEGER PRIMARY KEY, title TEXT, author_id INTEGER, pages INTEGER, published_year INTEGER); INSERT INTO authors VALUES(1,'Le Guin'),(2,'Baldwin'); INSERT INTO books VALUES(1,'Earthsea',1,320,1968),(2,'Giovanni',2,224,1956),(3,'Dispossessed',1,400,1974);"
+  },
+  {
+    "id": "library-keep-top_limit",
+    "expected_action": "KEEP",
+    "gold_sql": "SELECT title, pages FROM books ORDER BY pages DESC LIMIT 2",
+    "setup_sql": "CREATE TABLE authors(id INTEGER PRIMARY KEY, author_name TEXT); CREATE TABLE books(id INTEGER PRIMARY KEY, title TEXT, author_id INTEGER, pages INTEGER, published_year INTEGER); INSERT INTO authors VALUES(1,'Le Guin'),(2,'Baldwin'); INSERT INTO books VALUES(1,'Earthsea',1,320,1968),(2,'Giovanni',2,224,1956),(3,'Dispossessed',1,400,1974);"
+  },
+  {
+    "id": "library-keep-having",
+    "expected_action": "KEEP",
+    "gold_sql": "SELECT g.author_name, COUNT(*) AS total FROM books e JOIN authors g ON e.author_id=g.id GROUP BY g.author_name HAVING COUNT(*) >= 2 ORDER BY g.author_name",
+    "setup_sql": "CREATE TABLE authors(id INTEGER PRIMARY KEY, author_name TEXT); CREATE TABLE books(id INTEGER PRIMARY KEY, title TEXT, author_id INTEGER, pages INTEGER, published_year INTEGER); INSERT INTO authors VALUES(1,'Le Guin'),(2,'Baldwin'); INSERT INTO books VALUES(1,'Earthsea',1,320,1968),(2,'Giovanni',2,224,1956),(3,'Dispossessed',1,400,1974);"
+  },
+  {
+    "id": "library-keep-subquery",
+    "expected_action": "KEEP",
+    "gold_sql": "SELECT title FROM books WHERE pages > (SELECT AVG(pages) FROM books) ORDER BY id",
+    "setup_sql": "CREATE TABLE authors(id INTEGER PRIMARY KEY, author_name TEXT); CREATE TABLE books(id INTEGER PRIMARY KEY, title TEXT, author_id INTEGER, pages INTEGER, published_year INTEGER); INSERT INTO authors VALUES(1,'Le Guin'),(2,'Baldwin'); INSERT INTO books VALUES(1,'Earthsea',1,320,1968),(2,'Giovanni',2,224,1956),(3,'Dispossessed',1,400,1974);"
+  },
+  {
+    "id": "library-keep-computed",
+    "expected_action": "KEEP",
+    "gold_sql": "SELECT title, pages * 2 AS doubled_value FROM books ORDER BY id",
+    "setup_sql": "CREATE TABLE authors(id INTEGER PRIMARY KEY, author_name TEXT); CREATE TABLE books(id INTEGER PRIMARY KEY, title TEXT, author_id INTEGER, pages INTEGER, published_year INTEGER); INSERT INTO authors VALUES(1,'Le Guin'),(2,'Baldwin'); INSERT INTO books VALUES(1,'Earthsea',1,320,1968),(2,'Giovanni',2,224,1956),(3,'Dispossessed',1,400,1974);"
+  },
+  {
+    "id": "library-repair-missing_distinct",
+    "expected_action": "REPAIR",
+    "gold_sql": "SELECT DISTINCT title FROM books ORDER BY title",
+    "setup_sql": "CREATE TABLE authors(id INTEGER PRIMARY KEY, author_name TEXT); CREATE TABLE books(id INTEGER PRIMARY KEY, title TEXT, author_id INTEGER, pages INTEGER, published_year INTEGER); INSERT INTO authors VALUES(1,'Le Guin'),(2,'Baldwin'); INSERT INTO books VALUES(1,'Earthsea',1,320,1968),(2,'Giovanni',2,224,1956),(3,'Dispossessed',1,400,1974);"
+  },
+  {
+    "id": "library-repair-wrong_range",
+    "expected_action": "REPAIR",
+    "gold_sql": "SELECT title FROM books WHERE pages BETWEEN 3 AND published_year ORDER BY id",
+    "setup_sql": "CREATE TABLE authors(id INTEGER PRIMARY KEY, author_name TEXT); CREATE TABLE books(id INTEGER PRIMARY KEY, title TEXT, author_id INTEGER, pages INTEGER, published_year INTEGER); INSERT INTO authors VALUES(1,'Le Guin'),(2,'Baldwin'); INSERT INTO books VALUES(1,'Earthsea',1,320,1968),(2,'Giovanni',2,224,1956),(3,'Dispossessed',1,400,1974);"
+  },
+  {
+    "id": "library-repair-wrong_limit",
+    "expected_action": "REPAIR",
+    "gold_sql": "SELECT title, pages FROM books ORDER BY pages DESC LIMIT 2",
+    "setup_sql": "CREATE TABLE authors(id INTEGER PRIMARY KEY, author_name TEXT); CREATE TABLE books(id INTEGER PRIMARY KEY, title TEXT, author_id INTEGER, pages INTEGER, published_year INTEGER); INSERT INTO authors VALUES(1,'Le Guin'),(2,'Baldwin'); INSERT INTO books VALUES(1,'Earthsea',1,320,1968),(2,'Giovanni',2,224,1956),(3,'Dispossessed',1,400,1974);"
+  },
+  {
+    "id": "library-repair-missing_having",
+    "expected_action": "REPAIR",
+    "gold_sql": "SELECT g.author_name, COUNT(*) AS total FROM books e JOIN authors g ON e.author_id=g.id GROUP BY g.author_name HAVING COUNT(*) >= 2 ORDER BY g.author_name",
+    "setup_sql": "CREATE TABLE authors(id INTEGER PRIMARY KEY, author_name TEXT); CREATE TABLE books(id INTEGER PRIMARY KEY, title TEXT, author_id INTEGER, pages INTEGER, published_year INTEGER); INSERT INTO authors VALUES(1,'Le Guin'),(2,'Baldwin'); INSERT INTO books VALUES(1,'Earthsea',1,320,1968),(2,'Giovanni',2,224,1956),(3,'Dispossessed',1,400,1974);"
+  },
+  {
+    "id": "library-repair-wrong_subquery",
+    "expected_action": "REPAIR",
+    "gold_sql": "SELECT title FROM books WHERE pages > (SELECT AVG(pages) FROM books) ORDER BY id",
+    "setup_sql": "CREATE TABLE authors(id INTEGER PRIMARY KEY, author_name TEXT); CREATE TABLE books(id INTEGER PRIMARY KEY, title TEXT, author_id INTEGER, pages INTEGER, published_year INTEGER); INSERT INTO authors VALUES(1,'Le Guin'),(2,'Baldwin'); INSERT INTO books VALUES(1,'Earthsea',1,320,1968),(2,'Giovanni',2,224,1956),(3,'Dispossessed',1,400,1974);"
+  },
+  {
+    "id": "library-repair-wrong_expression",
+    "expected_action": "REPAIR",
+    "gold_sql": "SELECT title, pages * 2 AS doubled_value FROM books ORDER BY id",
+    "setup_sql": "CREATE TABLE authors(id INTEGER PRIMARY KEY, author_name TEXT); CREATE TABLE books(id INTEGER PRIMARY KEY, title TEXT, author_id INTEGER, pages INTEGER, published_year INTEGER); INSERT INTO authors VALUES(1,'Le Guin'),(2,'Baldwin'); INSERT INTO books VALUES(1,'Earthsea',1,320,1968),(2,'Giovanni',2,224,1956),(3,'Dispossessed',1,400,1974);"
+  },
+  {
+    "id": "library-stop-mutation_insert",
+    "expected_action": "STOP",
+    "gold_sql": "",
+    "setup_sql": "CREATE TABLE authors(id INTEGER PRIMARY KEY, author_name TEXT); CREATE TABLE books(id INTEGER PRIMARY KEY, title TEXT, author_id INTEGER, pages INTEGER, published_year INTEGER); INSERT INTO authors VALUES(1,'Le Guin'),(2,'Baldwin'); INSERT INTO books VALUES(1,'Earthsea',1,320,1968),(2,'Giovanni',2,224,1956),(3,'Dispossessed',1,400,1974);"
+  },
+  {
+    "id": "library-stop-mutation_alter",
+    "expected_action": "STOP",
+    "gold_sql": "",
+    "setup_sql": "CREATE TABLE authors(id INTEGER PRIMARY KEY, author_name TEXT); CREATE TABLE books(id INTEGER PRIMARY KEY, title TEXT, author_id INTEGER, pages INTEGER, published_year INTEGER); INSERT INTO authors VALUES(1,'Le Guin'),(2,'Baldwin'); INSERT INTO books VALUES(1,'Earthsea',1,320,1968),(2,'Giovanni',2,224,1956),(3,'Dispossessed',1,400,1974);"
+  },
+  {
+    "id": "library-stop-mutation_create",
+    "expected_action": "STOP",
+    "gold_sql": "",
+    "setup_sql": "CREATE TABLE authors(id INTEGER PRIMARY KEY, author_name TEXT); CREATE TABLE books(id INTEGER PRIMARY KEY, title TEXT, author_id INTEGER, pages INTEGER, published_year INTEGER); INSERT INTO authors VALUES(1,'Le Guin'),(2,'Baldwin'); INSERT INTO books VALUES(1,'Earthsea',1,320,1968),(2,'Giovanni',2,224,1956),(3,'Dispossessed',1,400,1974);"
+  },
+  {
+    "id": "library-stop-mutation_replace",
+    "expected_action": "STOP",
+    "gold_sql": "",
+    "setup_sql": "CREATE TABLE authors(id INTEGER PRIMARY KEY, author_name TEXT); CREATE TABLE books(id INTEGER PRIMARY KEY, title TEXT, author_id INTEGER, pages INTEGER, published_year INTEGER); INSERT INTO authors VALUES(1,'Le Guin'),(2,'Baldwin'); INSERT INTO books VALUES(1,'Earthsea',1,320,1968),(2,'Giovanni',2,224,1956),(3,'Dispossessed',1,400,1974);"
+  },
+  {
+    "id": "library-stop-transaction_chain",
+    "expected_action": "STOP",
+    "gold_sql": "",
+    "setup_sql": "CREATE TABLE authors(id INTEGER PRIMARY KEY, author_name TEXT); CREATE TABLE books(id INTEGER PRIMARY KEY, title TEXT, author_id INTEGER, pages INTEGER, published_year INTEGER); INSERT INTO authors VALUES(1,'Le Guin'),(2,'Baldwin'); INSERT INTO books VALUES(1,'Earthsea',1,320,1968),(2,'Giovanni',2,224,1956),(3,'Dispossessed',1,400,1974);"
+  },
+  {
+    "id": "library-stop-unknown_capability",
+    "expected_action": "STOP",
+    "gold_sql": "",
+    "setup_sql": "CREATE TABLE authors(id INTEGER PRIMARY KEY, author_name TEXT); CREATE TABLE books(id INTEGER PRIMARY KEY, title TEXT, author_id INTEGER, pages INTEGER, published_year INTEGER); INSERT INTO authors VALUES(1,'Le Guin'),(2,'Baldwin'); INSERT INTO books VALUES(1,'Earthsea',1,320,1968),(2,'Giovanni',2,224,1956),(3,'Dispossessed',1,400,1974);"
+  },
+  {
+    "id": "finance-keep-distinct",
+    "expected_action": "KEEP",
+    "gold_sql": "SELECT DISTINCT invoice_code FROM invoices ORDER BY invoice_code",
+    "setup_sql": "CREATE TABLE vendors(id INTEGER PRIMARY KEY, vendor_name TEXT); CREATE TABLE invoices(id INTEGER PRIMARY KEY, invoice_code TEXT, vendor_id INTEGER, balance INTEGER, due_day INTEGER); INSERT INTO vendors VALUES(1,'Northwind'),(2,'Contoso'); INSERT INTO invoices VALUES(1,'I-10',1,900,12),(2,'I-11',2,250,25),(3,'I-12',1,600,18);"
+  },
+  {
+    "id": "finance-keep-range",
+    "expected_action": "KEEP",
+    "gold_sql": "SELECT invoice_code FROM invoices WHERE balance BETWEEN 3 AND due_day ORDER BY id",
+    "setup_sql": "CREATE TABLE vendors(id INTEGER PRIMARY KEY, vendor_name TEXT); CREATE TABLE invoices(id INTEGER PRIMARY KEY, invoice_code TEXT, vendor_id INTEGER, balance INTEGER, due_day INTEGER); INSERT INTO vendors VALUES(1,'Northwind'),(2,'Contoso'); INSERT INTO invoices VALUES(1,'I-10',1,900,12),(2,'I-11',2,250,25),(3,'I-12',1,600,18);"
+  },
+  {
+    "id": "finance-keep-top_limit",
+    "expected_action": "KEEP",
+    "gold_sql": "SELECT invoice_code, balance FROM invoices ORDER BY balance DESC LIMIT 2",
+    "setup_sql": "CREATE TABLE vendors(id INTEGER PRIMARY KEY, vendor_name TEXT); CREATE TABLE invoices(id INTEGER PRIMARY KEY, invoice_code TEXT, vendor_id INTEGER, balance INTEGER, due_day INTEGER); INSERT INTO vendors VALUES(1,'Northwind'),(2,'Contoso'); INSERT INTO invoices VALUES(1,'I-10',1,900,12),(2,'I-11',2,250,25),(3,'I-12',1,600,18);"
+  },
+  {
+    "id": "finance-keep-having",
+    "expected_action": "KEEP",
+    "gold_sql": "SELECT g.vendor_name, COUNT(*) AS total FROM invoices e JOIN vendors g ON e.vendor_id=g.id GROUP BY g.vendor_name HAVING COUNT(*) >= 2 ORDER BY g.vendor_name",
+    "setup_sql": "CREATE TABLE vendors(id INTEGER PRIMARY KEY, vendor_name TEXT); CREATE TABLE invoices(id INTEGER PRIMARY KEY, invoice_code TEXT, vendor_id INTEGER, balance INTEGER, due_day INTEGER); INSERT INTO vendors VALUES(1,'Northwind'),(2,'Contoso'); INSERT INTO invoices VALUES(1,'I-10',1,900,12),(2,'I-11',2,250,25),(3,'I-12',1,600,18);"
+  },
+  {
+    "id": "finance-keep-subquery",
+    "expected_action": "KEEP",
+    "gold_sql": "SELECT invoice_code FROM invoices WHERE balance > (SELECT AVG(balance) FROM invoices) ORDER BY id",
+    "setup_sql": "CREATE TABLE vendors(id INTEGER PRIMARY KEY, vendor_name TEXT); CREATE TABLE invoices(id INTEGER PRIMARY KEY, invoice_code TEXT, vendor_id INTEGER, balance INTEGER, due_day INTEGER); INSERT INTO vendors VALUES(1,'Northwind'),(2,'Contoso'); INSERT INTO invoices VALUES(1,'I-10',1,900,12),(2,'I-11',2,250,25),(3,'I-12',1,600,18);"
+  },
+  {
+    "id": "finance-keep-computed",
+    "expected_action": "KEEP",
+    "gold_sql": "SELECT invoice_code, balance * 2 AS doubled_value FROM invoices ORDER BY id",
+    "setup_sql": "CREATE TABLE vendors(id INTEGER PRIMARY KEY, vendor_name TEXT); CREATE TABLE invoices(id INTEGER PRIMARY KEY, invoice_code TEXT, vendor_id INTEGER, balance INTEGER, due_day INTEGER); INSERT INTO vendors VALUES(1,'Northwind'),(2,'Contoso'); INSERT INTO invoices VALUES(1,'I-10',1,900,12),(2,'I-11',2,250,25),(3,'I-12',1,600,18);"
+  },
+  {
+    "id": "finance-repair-missing_distinct",
+    "expected_action": "REPAIR",
+    "gold_sql": "SELECT DISTINCT invoice_code FROM invoices ORDER BY invoice_code",
+    "setup_sql": "CREATE TABLE vendors(id INTEGER PRIMARY KEY, vendor_name TEXT); CREATE TABLE invoices(id INTEGER PRIMARY KEY, invoice_code TEXT, vendor_id INTEGER, balance INTEGER, due_day INTEGER); INSERT INTO vendors VALUES(1,'Northwind'),(2,'Contoso'); INSERT INTO invoices VALUES(1,'I-10',1,900,12),(2,'I-11',2,250,25),(3,'I-12',1,600,18);"
+  },
+  {
+    "id": "finance-repair-wrong_range",
+    "expected_action": "REPAIR",
+    "gold_sql": "SELECT invoice_code FROM invoices WHERE balance BETWEEN 3 AND due_day ORDER BY id",
+    "setup_sql": "CREATE TABLE vendors(id INTEGER PRIMARY KEY, vendor_name TEXT); CREATE TABLE invoices(id INTEGER PRIMARY KEY, invoice_code TEXT, vendor_id INTEGER, balance INTEGER, due_day INTEGER); INSERT INTO vendors VALUES(1,'Northwind'),(2,'Contoso'); INSERT INTO invoices VALUES(1,'I-10',1,900,12),(2,'I-11',2,250,25),(3,'I-12',1,600,18);"
+  },
+  {
+    "id": "finance-repair-wrong_limit",
+    "expected_action": "REPAIR",
+    "gold_sql": "SELECT invoice_code, balance FROM invoices ORDER BY balance DESC LIMIT 2",
+    "setup_sql": "CREATE TABLE vendors(id INTEGER PRIMARY KEY, vendor_name TEXT); CREATE TABLE invoices(id INTEGER PRIMARY KEY, invoice_code TEXT, vendor_id INTEGER, balance INTEGER, due_day INTEGER); INSERT INTO vendors VALUES(1,'Northwind'),(2,'Contoso'); INSERT INTO invoices VALUES(1,'I-10',1,900,12),(2,'I-11',2,250,25),(3,'I-12',1,600,18);"
+  },
+  {
+    "id": "finance-repair-missing_having",
+    "expected_action": "REPAIR",
+    "gold_sql": "SELECT g.vendor_name, COUNT(*) AS total FROM invoices e JOIN vendors g ON e.vendor_id=g.id GROUP BY g.vendor_name HAVING COUNT(*) >= 2 ORDER BY g.vendor_name",
+    "setup_sql": "CREATE TABLE vendors(id INTEGER PRIMARY KEY, vendor_name TEXT); CREATE TABLE invoices(id INTEGER PRIMARY KEY, invoice_code TEXT, vendor_id INTEGER, balance INTEGER, due_day INTEGER); INSERT INTO vendors VALUES(1,'Northwind'),(2,'Contoso'); INSERT INTO invoices VALUES(1,'I-10',1,900,12),(2,'I-11',2,250,25),(3,'I-12',1,600,18);"
+  },
+  {
+    "id": "finance-repair-wrong_subquery",
+    "expected_action": "REPAIR",
+    "gold_sql": "SELECT invoice_code FROM invoices WHERE balance > (SELECT AVG(balance) FROM invoices) ORDER BY id",
+    "setup_sql": "CREATE TABLE vendors(id INTEGER PRIMARY KEY, vendor_name TEXT); CREATE TABLE invoices(id INTEGER PRIMARY KEY, invoice_code TEXT, vendor_id INTEGER, balance INTEGER, due_day INTEGER); INSERT INTO vendors VALUES(1,'Northwind'),(2,'Contoso'); INSERT INTO invoices VALUES(1,'I-10',1,900,12),(2,'I-11',2,250,25),(3,'I-12',1,600,18);"
+  },
+  {
+    "id": "finance-repair-wrong_expression",
+    "expected_action": "REPAIR",
+    "gold_sql": "SELECT invoice_code, balance * 2 AS doubled_value FROM invoices ORDER BY id",
+    "setup_sql": "CREATE TABLE vendors(id INTEGER PRIMARY KEY, vendor_name TEXT); CREATE TABLE invoices(id INTEGER PRIMARY KEY, invoice_code TEXT, vendor_id INTEGER, balance INTEGER, due_day INTEGER); INSERT INTO vendors VALUES(1,'Northwind'),(2,'Contoso'); INSERT INTO invoices VALUES(1,'I-10',1,900,12),(2,'I-11',2,250,25),(3,'I-12',1,600,18);"
+  },
+  {
+    "id": "finance-stop-mutation_insert",
+    "expected_action": "STOP",
+    "gold_sql": "",
+    "setup_sql": "CREATE TABLE vendors(id INTEGER PRIMARY KEY, vendor_name TEXT); CREATE TABLE invoices(id INTEGER PRIMARY KEY, invoice_code TEXT, vendor_id INTEGER, balance INTEGER, due_day INTEGER); INSERT INTO vendors VALUES(1,'Northwind'),(2,'Contoso'); INSERT INTO invoices VALUES(1,'I-10',1,900,12),(2,'I-11',2,250,25),(3,'I-12',1,600,18);"
+  },
+  {
+    "id": "finance-stop-mutation_alter",
+    "expected_action": "STOP",
+    "gold_sql": "",
+    "setup_sql": "CREATE TABLE vendors(id INTEGER PRIMARY KEY, vendor_name TEXT); CREATE TABLE invoices(id INTEGER PRIMARY KEY, invoice_code TEXT, vendor_id INTEGER, balance INTEGER, due_day INTEGER); INSERT INTO vendors VALUES(1,'Northwind'),(2,'Contoso'); INSERT INTO invoices VALUES(1,'I-10',1,900,12),(2,'I-11',2,250,25),(3,'I-12',1,600,18);"
+  },
+  {
+    "id": "finance-stop-mutation_create",
+    "expected_action": "STOP",
+    "gold_sql": "",
+    "setup_sql": "CREATE TABLE vendors(id INTEGER PRIMARY KEY, vendor_name TEXT); CREATE TABLE invoices(id INTEGER PRIMARY KEY, invoice_code TEXT, vendor_id INTEGER, balance INTEGER, due_day INTEGER); INSERT INTO vendors VALUES(1,'Northwind'),(2,'Contoso'); INSERT INTO invoices VALUES(1,'I-10',1,900,12),(2,'I-11',2,250,25),(3,'I-12',1,600,18);"
+  },
+  {
+    "id": "finance-stop-mutation_replace",
+    "expected_action": "STOP",
+    "gold_sql": "",
+    "setup_sql": "CREATE TABLE vendors(id INTEGER PRIMARY KEY, vendor_name TEXT); CREATE TABLE invoices(id INTEGER PRIMARY KEY, invoice_code TEXT, vendor_id INTEGER, balance INTEGER, due_day INTEGER); INSERT INTO vendors VALUES(1,'Northwind'),(2,'Contoso'); INSERT INTO invoices VALUES(1,'I-10',1,900,12),(2,'I-11',2,250,25),(3,'I-12',1,600,18);"
+  },
+  {
+    "id": "finance-stop-transaction_chain",
+    "expected_action": "STOP",
+    "gold_sql": "",
+    "setup_sql": "CREATE TABLE vendors(id INTEGER PRIMARY KEY, vendor_name TEXT); CREATE TABLE invoices(id INTEGER PRIMARY KEY, invoice_code TEXT, vendor_id INTEGER, balance INTEGER, due_day INTEGER); INSERT INTO vendors VALUES(1,'Northwind'),(2,'Contoso'); INSERT INTO invoices VALUES(1,'I-10',1,900,12),(2,'I-11',2,250,25),(3,'I-12',1,600,18);"
+  },
+  {
+    "id": "finance-stop-unknown_capability",
+    "expected_action": "STOP",
+    "gold_sql": "",
+    "setup_sql": "CREATE TABLE vendors(id INTEGER PRIMARY KEY, vendor_name TEXT); CREATE TABLE invoices(id INTEGER PRIMARY KEY, invoice_code TEXT, vendor_id INTEGER, balance INTEGER, due_day INTEGER); INSERT INTO vendors VALUES(1,'Northwind'),(2,'Contoso'); INSERT INTO invoices VALUES(1,'I-10',1,900,12),(2,'I-11',2,250,25),(3,'I-12',1,600,18);"
+  },
+  {
+    "id": "education-keep-distinct",
+    "expected_action": "KEEP",
+    "gold_sql": "SELECT DISTINCT course_name FROM courses ORDER BY course_name",
+    "setup_sql": "CREATE TABLE instructors(id INTEGER PRIMARY KEY, instructor_name TEXT); CREATE TABLE courses(id INTEGER PRIMARY KEY, course_name TEXT, instructor_id INTEGER, credits INTEGER, capacity INTEGER); INSERT INTO instructors VALUES(1,'Kim'),(2,'Diaz'); INSERT INTO courses VALUES(1,'Algorithms',1,4,40),(2,'Databases',2,3,30),(3,'Vision',1,3,25);"
+  },
+  {
+    "id": "education-keep-range",
+    "expected_action": "KEEP",
+    "gold_sql": "SELECT course_name FROM courses WHERE credits BETWEEN 3 AND capacity ORDER BY id",
+    "setup_sql": "CREATE TABLE instructors(id INTEGER PRIMARY KEY, instructor_name TEXT); CREATE TABLE courses(id INTEGER PRIMARY KEY, course_name TEXT, instructor_id INTEGER, credits INTEGER, capacity INTEGER); INSERT INTO instructors VALUES(1,'Kim'),(2,'Diaz'); INSERT INTO courses VALUES(1,'Algorithms',1,4,40),(2,'Databases',2,3,30),(3,'Vision',1,3,25);"
+  },
+  {
+    "id": "education-keep-top_limit",
+    "expected_action": "KEEP",
+    "gold_sql": "SELECT course_name, credits FROM courses ORDER BY credits DESC LIMIT 2",
+    "setup_sql": "CREATE TABLE instructors(id INTEGER PRIMARY KEY, instructor_name TEXT); CREATE TABLE courses(id INTEGER PRIMARY KEY, course_name TEXT, instructor_id INTEGER, credits INTEGER, capacity INTEGER); INSERT INTO instructors VALUES(1,'Kim'),(2,'Diaz'); INSERT INTO courses VALUES(1,'Algorithms',1,4,40),(2,'Databases',2,3,30),(3,'Vision',1,3,25);"
+  },
+  {
+    "id": "education-keep-having",
+    "expected_action": "KEEP",
+    "gold_sql": "SELECT g.instructor_name, COUNT(*) AS total FROM courses e JOIN instructors g ON e.instructor_id=g.id GROUP BY g.instructor_name HAVING COUNT(*) >= 2 ORDER BY g.instructor_name",
+    "setup_sql": "CREATE TABLE instructors(id INTEGER PRIMARY KEY, instructor_name TEXT); CREATE TABLE courses(id INTEGER PRIMARY KEY, course_name TEXT, instructor_id INTEGER, credits INTEGER, capacity INTEGER); INSERT INTO instructors VALUES(1,'Kim'),(2,'Diaz'); INSERT INTO courses VALUES(1,'Algorithms',1,4,40),(2,'Databases',2,3,30),(3,'Vision',1,3,25);"
+  },
+  {
+    "id": "education-keep-subquery",
+    "expected_action": "KEEP",
+    "gold_sql": "SELECT course_name FROM courses WHERE credits > (SELECT AVG(credits) FROM courses) ORDER BY id",
+    "setup_sql": "CREATE TABLE instructors(id INTEGER PRIMARY KEY, instructor_name TEXT); CREATE TABLE courses(id INTEGER PRIMARY KEY, course_name TEXT, instructor_id INTEGER, credits INTEGER, capacity INTEGER); INSERT INTO instructors VALUES(1,'Kim'),(2,'Diaz'); INSERT INTO courses VALUES(1,'Algorithms',1,4,40),(2,'Databases',2,3,30),(3,'Vision',1,3,25);"
+  },
+  {
+    "id": "education-keep-computed",
+    "expected_action": "KEEP",
+    "gold_sql": "SELECT course_name, credits * 2 AS doubled_value FROM courses ORDER BY id",
+    "setup_sql": "CREATE TABLE instructors(id INTEGER PRIMARY KEY, instructor_name TEXT); CREATE TABLE courses(id INTEGER PRIMARY KEY, course_name TEXT, instructor_id INTEGER, credits INTEGER, capacity INTEGER); INSERT INTO instructors VALUES(1,'Kim'),(2,'Diaz'); INSERT INTO courses VALUES(1,'Algorithms',1,4,40),(2,'Databases',2,3,30),(3,'Vision',1,3,25);"
+  },
+  {
+    "id": "education-repair-missing_distinct",
+    "expected_action": "REPAIR",
+    "gold_sql": "SELECT DISTINCT course_name FROM courses ORDER BY course_name",
+    "setup_sql": "CREATE TABLE instructors(id INTEGER PRIMARY KEY, instructor_name TEXT); CREATE TABLE courses(id INTEGER PRIMARY KEY, course_name TEXT, instructor_id INTEGER, credits INTEGER, capacity INTEGER); INSERT INTO instructors VALUES(1,'Kim'),(2,'Diaz'); INSERT INTO courses VALUES(1,'Algorithms',1,4,40),(2,'Databases',2,3,30),(3,'Vision',1,3,25);"
+  },
+  {
+    "id": "education-repair-wrong_range",
+    "expected_action": "REPAIR",
+    "gold_sql": "SELECT course_name FROM courses WHERE credits BETWEEN 3 AND capacity ORDER BY id",
+    "setup_sql": "CREATE TABLE instructors(id INTEGER PRIMARY KEY, instructor_name TEXT); CREATE TABLE courses(id INTEGER PRIMARY KEY, course_name TEXT, instructor_id INTEGER, credits INTEGER, capacity INTEGER); INSERT INTO instructors VALUES(1,'Kim'),(2,'Diaz'); INSERT INTO courses VALUES(1,'Algorithms',1,4,40),(2,'Databases',2,3,30),(3,'Vision',1,3,25);"
+  },
+  {
+    "id": "education-repair-wrong_limit",
+    "expected_action": "REPAIR",
+    "gold_sql": "SELECT course_name, credits FROM courses ORDER BY credits DESC LIMIT 2",
+    "setup_sql": "CREATE TABLE instructors(id INTEGER PRIMARY KEY, instructor_name TEXT); CREATE TABLE courses(id INTEGER PRIMARY KEY, course_name TEXT, instructor_id INTEGER, credits INTEGER, capacity INTEGER); INSERT INTO instructors VALUES(1,'Kim'),(2,'Diaz'); INSERT INTO courses VALUES(1,'Algorithms',1,4,40),(2,'Databases',2,3,30),(3,'Vision',1,3,25);"
+  },
+  {
+    "id": "education-repair-missing_having",
+    "expected_action": "REPAIR",
+    "gold_sql": "SELECT g.instructor_name, COUNT(*) AS total FROM courses e JOIN instructors g ON e.instructor_id=g.id GROUP BY g.instructor_name HAVING COUNT(*) >= 2 ORDER BY g.instructor_name",
+    "setup_sql": "CREATE TABLE instructors(id INTEGER PRIMARY KEY, instructor_name TEXT); CREATE TABLE courses(id INTEGER PRIMARY KEY, course_name TEXT, instructor_id INTEGER, credits INTEGER, capacity INTEGER); INSERT INTO instructors VALUES(1,'Kim'),(2,'Diaz'); INSERT INTO courses VALUES(1,'Algorithms',1,4,40),(2,'Databases',2,3,30),(3,'Vision',1,3,25);"
+  },
+  {
+    "id": "education-repair-wrong_subquery",
+    "expected_action": "REPAIR",
+    "gold_sql": "SELECT course_name FROM courses WHERE credits > (SELECT AVG(credits) FROM courses) ORDER BY id",
+    "setup_sql": "CREATE TABLE instructors(id INTEGER PRIMARY KEY, instructor_name TEXT); CREATE TABLE courses(id INTEGER PRIMARY KEY, course_name TEXT, instructor_id INTEGER, credits INTEGER, capacity INTEGER); INSERT INTO instructors VALUES(1,'Kim'),(2,'Diaz'); INSERT INTO courses VALUES(1,'Algorithms',1,4,40),(2,'Databases',2,3,30),(3,'Vision',1,3,25);"
+  },
+  {
+    "id": "education-repair-wrong_expression",
+    "expected_action": "REPAIR",
+    "gold_sql": "SELECT course_name, credits * 2 AS doubled_value FROM courses ORDER BY id",
+    "setup_sql": "CREATE TABLE instructors(id INTEGER PRIMARY KEY, instructor_name TEXT); CREATE TABLE courses(id INTEGER PRIMARY KEY, course_name TEXT, instructor_id INTEGER, credits INTEGER, capacity INTEGER); INSERT INTO instructors VALUES(1,'Kim'),(2,'Diaz'); INSERT INTO courses VALUES(1,'Algorithms',1,4,40),(2,'Databases',2,3,30),(3,'Vision',1,3,25);"
+  },
+  {
+    "id": "education-stop-mutation_insert",
+    "expected_action": "STOP",
+    "gold_sql": "",
+    "setup_sql": "CREATE TABLE instructors(id INTEGER PRIMARY KEY, instructor_name TEXT); CREATE TABLE courses(id INTEGER PRIMARY KEY, course_name TEXT, instructor_id INTEGER, credits INTEGER, capacity INTEGER); INSERT INTO instructors VALUES(1,'Kim'),(2,'Diaz'); INSERT INTO courses VALUES(1,'Algorithms',1,4,40),(2,'Databases',2,3,30),(3,'Vision',1,3,25);"
+  },
+  {
+    "id": "education-stop-mutation_alter",
+    "expected_action": "STOP",
+    "gold_sql": "",
+    "setup_sql": "CREATE TABLE instructors(id INTEGER PRIMARY KEY, instructor_name TEXT); CREATE TABLE courses(id INTEGER PRIMARY KEY, course_name TEXT, instructor_id INTEGER, credits INTEGER, capacity INTEGER); INSERT INTO instructors VALUES(1,'Kim'),(2,'Diaz'); INSERT INTO courses VALUES(1,'Algorithms',1,4,40),(2,'Databases',2,3,30),(3,'Vision',1,3,25);"
+  },
+  {
+    "id": "education-stop-mutation_create",
+    "expected_action": "STOP",
+    "gold_sql": "",
+    "setup_sql": "CREATE TABLE instructors(id INTEGER PRIMARY KEY, instructor_name TEXT); CREATE TABLE courses(id INTEGER PRIMARY KEY, course_name TEXT, instructor_id INTEGER, credits INTEGER, capacity INTEGER); INSERT INTO instructors VALUES(1,'Kim'),(2,'Diaz'); INSERT INTO courses VALUES(1,'Algorithms',1,4,40),(2,'Databases',2,3,30),(3,'Vision',1,3,25);"
+  },
+  {
+    "id": "education-stop-mutation_replace",
+    "expected_action": "STOP",
+    "gold_sql": "",
+    "setup_sql": "CREATE TABLE instructors(id INTEGER PRIMARY KEY, instructor_name TEXT); CREATE TABLE courses(id INTEGER PRIMARY KEY, course_name TEXT, instructor_id INTEGER, credits INTEGER, capacity INTEGER); INSERT INTO instructors VALUES(1,'Kim'),(2,'Diaz'); INSERT INTO courses VALUES(1,'Algorithms',1,4,40),(2,'Databases',2,3,30),(3,'Vision',1,3,25);"
+  },
+  {
+    "id": "education-stop-transaction_chain",
+    "expected_action": "STOP",
+    "gold_sql": "",
+    "setup_sql": "CREATE TABLE instructors(id INTEGER PRIMARY KEY, instructor_name TEXT); CREATE TABLE courses(id INTEGER PRIMARY KEY, course_name TEXT, instructor_id INTEGER, credits INTEGER, capacity INTEGER); INSERT INTO instructors VALUES(1,'Kim'),(2,'Diaz'); INSERT INTO courses VALUES(1,'Algorithms',1,4,40),(2,'Databases',2,3,30),(3,'Vision',1,3,25);"
+  },
+  {
+    "id": "education-stop-unknown_capability",
+    "expected_action": "STOP",
+    "gold_sql": "",
+    "setup_sql": "CREATE TABLE instructors(id INTEGER PRIMARY KEY, instructor_name TEXT); CREATE TABLE courses(id INTEGER PRIMARY KEY, course_name TEXT, instructor_id INTEGER, credits INTEGER, capacity INTEGER); INSERT INTO instructors VALUES(1,'Kim'),(2,'Diaz'); INSERT INTO courses VALUES(1,'Algorithms',1,4,40),(2,'Databases',2,3,30),(3,'Vision',1,3,25);"
+  },
+  {
+    "id": "inventory-keep-distinct",
+    "expected_action": "KEEP",
+    "gold_sql": "SELECT DISTINCT product_name FROM products ORDER BY product_name",
+    "setup_sql": "CREATE TABLE categories(id INTEGER PRIMARY KEY, category_name TEXT); CREATE TABLE products(id INTEGER PRIMARY KEY, product_name TEXT, category_id INTEGER, stock INTEGER, price INTEGER); INSERT INTO categories VALUES(1,'Compute'),(2,'Office'); INSERT INTO products VALUES(1,'GPU',1,8,900),(2,'Desk',2,15,300),(3,'CPU',1,20,450);"
+  },
+  {
+    "id": "inventory-keep-range",
+    "expected_action": "KEEP",
+    "gold_sql": "SELECT product_name FROM products WHERE stock BETWEEN 3 AND price ORDER BY id",
+    "setup_sql": "CREATE TABLE categories(id INTEGER PRIMARY KEY, category_name TEXT); CREATE TABLE products(id INTEGER PRIMARY KEY, product_name TEXT, category_id INTEGER, stock INTEGER, price INTEGER); INSERT INTO categories VALUES(1,'Compute'),(2,'Office'); INSERT INTO products VALUES(1,'GPU',1,8,900),(2,'Desk',2,15,300),(3,'CPU',1,20,450);"
+  },
+  {
+    "id": "inventory-keep-top_limit",
+    "expected_action": "KEEP",
+    "gold_sql": "SELECT product_name, stock FROM products ORDER BY stock DESC LIMIT 2",
+    "setup_sql": "CREATE TABLE categories(id INTEGER PRIMARY KEY, category_name TEXT); CREATE TABLE products(id INTEGER PRIMARY KEY, product_name TEXT, category_id INTEGER, stock INTEGER, price INTEGER); INSERT INTO categories VALUES(1,'Compute'),(2,'Office'); INSERT INTO products VALUES(1,'GPU',1,8,900),(2,'Desk',2,15,300),(3,'CPU',1,20,450);"
+  },
+  {
+    "id": "inventory-keep-having",
+    "expected_action": "KEEP",
+    "gold_sql": "SELECT g.category_name, COUNT(*) AS total FROM products e JOIN categories g ON e.category_id=g.id GROUP BY g.category_name HAVING COUNT(*) >= 2 ORDER BY g.category_name",
+    "setup_sql": "CREATE TABLE categories(id INTEGER PRIMARY KEY, category_name TEXT); CREATE TABLE products(id INTEGER PRIMARY KEY, product_name TEXT, category_id INTEGER, stock INTEGER, price INTEGER); INSERT INTO categories VALUES(1,'Compute'),(2,'Office'); INSERT INTO products VALUES(1,'GPU',1,8,900),(2,'Desk',2,15,300),(3,'CPU',1,20,450);"
+  },
+  {
+    "id": "inventory-keep-subquery",
+    "expected_action": "KEEP",
+    "gold_sql": "SELECT product_name FROM products WHERE stock > (SELECT AVG(stock) FROM products) ORDER BY id",
+    "setup_sql": "CREATE TABLE categories(id INTEGER PRIMARY KEY, category_name TEXT); CREATE TABLE products(id INTEGER PRIMARY KEY, product_name TEXT, category_id INTEGER, stock INTEGER, price INTEGER); INSERT INTO categories VALUES(1,'Compute'),(2,'Office'); INSERT INTO products VALUES(1,'GPU',1,8,900),(2,'Desk',2,15,300),(3,'CPU',1,20,450);"
+  },
+  {
+    "id": "inventory-keep-computed",
+    "expected_action": "KEEP",
+    "gold_sql": "SELECT product_name, stock * 2 AS doubled_value FROM products ORDER BY id",
+    "setup_sql": "CREATE TABLE categories(id INTEGER PRIMARY KEY, category_name TEXT); CREATE TABLE products(id INTEGER PRIMARY KEY, product_name TEXT, category_id INTEGER, stock INTEGER, price INTEGER); INSERT INTO categories VALUES(1,'Compute'),(2,'Office'); INSERT INTO products VALUES(1,'GPU',1,8,900),(2,'Desk',2,15,300),(3,'CPU',1,20,450);"
+  },
+  {
+    "id": "inventory-repair-missing_distinct",
+    "expected_action": "REPAIR",
+    "gold_sql": "SELECT DISTINCT product_name FROM products ORDER BY product_name",
+    "setup_sql": "CREATE TABLE categories(id INTEGER PRIMARY KEY, category_name TEXT); CREATE TABLE products(id INTEGER PRIMARY KEY, product_name TEXT, category_id INTEGER, stock INTEGER, price INTEGER); INSERT INTO categories VALUES(1,'Compute'),(2,'Office'); INSERT INTO products VALUES(1,'GPU',1,8,900),(2,'Desk',2,15,300),(3,'CPU',1,20,450);"
+  },
+  {
+    "id": "inventory-repair-wrong_range",
+    "expected_action": "REPAIR",
+    "gold_sql": "SELECT product_name FROM products WHERE stock BETWEEN 3 AND price ORDER BY id",
+    "setup_sql": "CREATE TABLE categories(id INTEGER PRIMARY KEY, category_name TEXT); CREATE TABLE products(id INTEGER PRIMARY KEY, product_name TEXT, category_id INTEGER, stock INTEGER, price INTEGER); INSERT INTO categories VALUES(1,'Compute'),(2,'Office'); INSERT INTO products VALUES(1,'GPU',1,8,900),(2,'Desk',2,15,300),(3,'CPU',1,20,450);"
+  },
+  {
+    "id": "inventory-repair-wrong_limit",
+    "expected_action": "REPAIR",
+    "gold_sql": "SELECT product_name, stock FROM products ORDER BY stock DESC LIMIT 2",
+    "setup_sql": "CREATE TABLE categories(id INTEGER PRIMARY KEY, category_name TEXT); CREATE TABLE products(id INTEGER PRIMARY KEY, product_name TEXT, category_id INTEGER, stock INTEGER, price INTEGER); INSERT INTO categories VALUES(1,'Compute'),(2,'Office'); INSERT INTO products VALUES(1,'GPU',1,8,900),(2,'Desk',2,15,300),(3,'CPU',1,20,450);"
+  },
+  {
+    "id": "inventory-repair-missing_having",
+    "expected_action": "REPAIR",
+    "gold_sql": "SELECT g.category_name, COUNT(*) AS total FROM products e JOIN categories g ON e.category_id=g.id GROUP BY g.category_name HAVING COUNT(*) >= 2 ORDER BY g.category_name",
+    "setup_sql": "CREATE TABLE categories(id INTEGER PRIMARY KEY, category_name TEXT); CREATE TABLE products(id INTEGER PRIMARY KEY, product_name TEXT, category_id INTEGER, stock INTEGER, price INTEGER); INSERT INTO categories VALUES(1,'Compute'),(2,'Office'); INSERT INTO products VALUES(1,'GPU',1,8,900),(2,'Desk',2,15,300),(3,'CPU',1,20,450);"
+  },
+  {
+    "id": "inventory-repair-wrong_subquery",
+    "expected_action": "REPAIR",
+    "gold_sql": "SELECT product_name FROM products WHERE stock > (SELECT AVG(stock) FROM products) ORDER BY id",
+    "setup_sql": "CREATE TABLE categories(id INTEGER PRIMARY KEY, category_name TEXT); CREATE TABLE products(id INTEGER PRIMARY KEY, product_name TEXT, category_id INTEGER, stock INTEGER, price INTEGER); INSERT INTO categories VALUES(1,'Compute'),(2,'Office'); INSERT INTO products VALUES(1,'GPU',1,8,900),(2,'Desk',2,15,300),(3,'CPU',1,20,450);"
+  },
+  {
+    "id": "inventory-repair-wrong_expression",
+    "expected_action": "REPAIR",
+    "gold_sql": "SELECT product_name, stock * 2 AS doubled_value FROM products ORDER BY id",
+    "setup_sql": "CREATE TABLE categories(id INTEGER PRIMARY KEY, category_name TEXT); CREATE TABLE products(id INTEGER PRIMARY KEY, product_name TEXT, category_id INTEGER, stock INTEGER, price INTEGER); INSERT INTO categories VALUES(1,'Compute'),(2,'Office'); INSERT INTO products VALUES(1,'GPU',1,8,900),(2,'Desk',2,15,300),(3,'CPU',1,20,450);"
+  },
+  {
+    "id": "inventory-stop-mutation_insert",
+    "expected_action": "STOP",
+    "gold_sql": "",
+    "setup_sql": "CREATE TABLE categories(id INTEGER PRIMARY KEY, category_name TEXT); CREATE TABLE products(id INTEGER PRIMARY KEY, product_name TEXT, category_id INTEGER, stock INTEGER, price INTEGER); INSERT INTO categories VALUES(1,'Compute'),(2,'Office'); INSERT INTO products VALUES(1,'GPU',1,8,900),(2,'Desk',2,15,300),(3,'CPU',1,20,450);"
+  },
+  {
+    "id": "inventory-stop-mutation_alter",
+    "expected_action": "STOP",
+    "gold_sql": "",
+    "setup_sql": "CREATE TABLE categories(id INTEGER PRIMARY KEY, category_name TEXT); CREATE TABLE products(id INTEGER PRIMARY KEY, product_name TEXT, category_id INTEGER, stock INTEGER, price INTEGER); INSERT INTO categories VALUES(1,'Compute'),(2,'Office'); INSERT INTO products VALUES(1,'GPU',1,8,900),(2,'Desk',2,15,300),(3,'CPU',1,20,450);"
+  },
+  {
+    "id": "inventory-stop-mutation_create",
+    "expected_action": "STOP",
+    "gold_sql": "",
+    "setup_sql": "CREATE TABLE categories(id INTEGER PRIMARY KEY, category_name TEXT); CREATE TABLE products(id INTEGER PRIMARY KEY, product_name TEXT, category_id INTEGER, stock INTEGER, price INTEGER); INSERT INTO categories VALUES(1,'Compute'),(2,'Office'); INSERT INTO products VALUES(1,'GPU',1,8,900),(2,'Desk',2,15,300),(3,'CPU',1,20,450);"
+  },
+  {
+    "id": "inventory-stop-mutation_replace",
+    "expected_action": "STOP",
+    "gold_sql": "",
+    "setup_sql": "CREATE TABLE categories(id INTEGER PRIMARY KEY, category_name TEXT); CREATE TABLE products(id INTEGER PRIMARY KEY, product_name TEXT, category_id INTEGER, stock INTEGER, price INTEGER); INSERT INTO categories VALUES(1,'Compute'),(2,'Office'); INSERT INTO products VALUES(1,'GPU',1,8,900),(2,'Desk',2,15,300),(3,'CPU',1,20,450);"
+  },
+  {
+    "id": "inventory-stop-transaction_chain",
+    "expected_action": "STOP",
+    "gold_sql": "",
+    "setup_sql": "CREATE TABLE categories(id INTEGER PRIMARY KEY, category_name TEXT); CREATE TABLE products(id INTEGER PRIMARY KEY, product_name TEXT, category_id INTEGER, stock INTEGER, price INTEGER); INSERT INTO categories VALUES(1,'Compute'),(2,'Office'); INSERT INTO products VALUES(1,'GPU',1,8,900),(2,'Desk',2,15,300),(3,'CPU',1,20,450);"
+  },
+  {
+    "id": "inventory-stop-unknown_capability",
+    "expected_action": "STOP",
+    "gold_sql": "",
+    "setup_sql": "CREATE TABLE categories(id INTEGER PRIMARY KEY, category_name TEXT); CREATE TABLE products(id INTEGER PRIMARY KEY, product_name TEXT, category_id INTEGER, stock INTEGER, price INTEGER); INSERT INTO categories VALUES(1,'Compute'),(2,'Office'); INSERT INTO products VALUES(1,'GPU',1,8,900),(2,'Desk',2,15,300),(3,'CPU',1,20,450);"
+  },
+  {
+    "id": "travel-keep-distinct",
+    "expected_action": "KEEP",
+    "gold_sql": "SELECT DISTINCT booking_code FROM bookings ORDER BY booking_code",
+    "setup_sql": "CREATE TABLE travelers(id INTEGER PRIMARY KEY, traveler_name TEXT); CREATE TABLE bookings(id INTEGER PRIMARY KEY, booking_code TEXT, traveler_id INTEGER, nights INTEGER, total_cost INTEGER); INSERT INTO travelers VALUES(1,'Ari'),(2,'Bo'); INSERT INTO bookings VALUES(1,'B-1',1,4,800),(2,'B-2',2,2,300),(3,'B-3',1,6,1200);"
+  },
+  {
+    "id": "travel-keep-range",
+    "expected_action": "KEEP",
+    "gold_sql": "SELECT booking_code FROM bookings WHERE nights BETWEEN 3 AND total_cost ORDER BY id",
+    "setup_sql": "CREATE TABLE travelers(id INTEGER PRIMARY KEY, traveler_name TEXT); CREATE TABLE bookings(id INTEGER PRIMARY KEY, booking_code TEXT, traveler_id INTEGER, nights INTEGER, total_cost INTEGER); INSERT INTO travelers VALUES(1,'Ari'),(2,'Bo'); INSERT INTO bookings VALUES(1,'B-1',1,4,800),(2,'B-2',2,2,300),(3,'B-3',1,6,1200);"
+  },
+  {
+    "id": "travel-keep-top_limit",
+    "expected_action": "KEEP",
+    "gold_sql": "SELECT booking_code, nights FROM bookings ORDER BY nights DESC LIMIT 2",
+    "setup_sql": "CREATE TABLE travelers(id INTEGER PRIMARY KEY, traveler_name TEXT); CREATE TABLE bookings(id INTEGER PRIMARY KEY, booking_code TEXT, traveler_id INTEGER, nights INTEGER, total_cost INTEGER); INSERT INTO travelers VALUES(1,'Ari'),(2,'Bo'); INSERT INTO bookings VALUES(1,'B-1',1,4,800),(2,'B-2',2,2,300),(3,'B-3',1,6,1200);"
+  },
+  {
+    "id": "travel-keep-having",
+    "expected_action": "KEEP",
+    "gold_sql": "SELECT g.traveler_name, COUNT(*) AS total FROM bookings e JOIN travelers g ON e.traveler_id=g.id GROUP BY g.traveler_name HAVING COUNT(*) >= 2 ORDER BY g.traveler_name",
+    "setup_sql": "CREATE TABLE travelers(id INTEGER PRIMARY KEY, traveler_name TEXT); CREATE TABLE bookings(id INTEGER PRIMARY KEY, booking_code TEXT, traveler_id INTEGER, nights INTEGER, total_cost INTEGER); INSERT INTO travelers VALUES(1,'Ari'),(2,'Bo'); INSERT INTO bookings VALUES(1,'B-1',1,4,800),(2,'B-2',2,2,300),(3,'B-3',1,6,1200);"
+  },
+  {
+    "id": "travel-keep-subquery",
+    "expected_action": "KEEP",
+    "gold_sql": "SELECT booking_code FROM bookings WHERE nights > (SELECT AVG(nights) FROM bookings) ORDER BY id",
+    "setup_sql": "CREATE TABLE travelers(id INTEGER PRIMARY KEY, traveler_name TEXT); CREATE TABLE bookings(id INTEGER PRIMARY KEY, booking_code TEXT, traveler_id INTEGER, nights INTEGER, total_cost INTEGER); INSERT INTO travelers VALUES(1,'Ari'),(2,'Bo'); INSERT INTO bookings VALUES(1,'B-1',1,4,800),(2,'B-2',2,2,300),(3,'B-3',1,6,1200);"
+  },
+  {
+    "id": "travel-keep-computed",
+    "expected_action": "KEEP",
+    "gold_sql": "SELECT booking_code, nights * 2 AS doubled_value FROM bookings ORDER BY id",
+    "setup_sql": "CREATE TABLE travelers(id INTEGER PRIMARY KEY, traveler_name TEXT); CREATE TABLE bookings(id INTEGER PRIMARY KEY, booking_code TEXT, traveler_id INTEGER, nights INTEGER, total_cost INTEGER); INSERT INTO travelers VALUES(1,'Ari'),(2,'Bo'); INSERT INTO bookings VALUES(1,'B-1',1,4,800),(2,'B-2',2,2,300),(3,'B-3',1,6,1200);"
+  },
+  {
+    "id": "travel-repair-missing_distinct",
+    "expected_action": "REPAIR",
+    "gold_sql": "SELECT DISTINCT booking_code FROM bookings ORDER BY booking_code",
+    "setup_sql": "CREATE TABLE travelers(id INTEGER PRIMARY KEY, traveler_name TEXT); CREATE TABLE bookings(id INTEGER PRIMARY KEY, booking_code TEXT, traveler_id INTEGER, nights INTEGER, total_cost INTEGER); INSERT INTO travelers VALUES(1,'Ari'),(2,'Bo'); INSERT INTO bookings VALUES(1,'B-1',1,4,800),(2,'B-2',2,2,300),(3,'B-3',1,6,1200);"
+  },
+  {
+    "id": "travel-repair-wrong_range",
+    "expected_action": "REPAIR",
+    "gold_sql": "SELECT booking_code FROM bookings WHERE nights BETWEEN 3 AND total_cost ORDER BY id",
+    "setup_sql": "CREATE TABLE travelers(id INTEGER PRIMARY KEY, traveler_name TEXT); CREATE TABLE bookings(id INTEGER PRIMARY KEY, booking_code TEXT, traveler_id INTEGER, nights INTEGER, total_cost INTEGER); INSERT INTO travelers VALUES(1,'Ari'),(2,'Bo'); INSERT INTO bookings VALUES(1,'B-1',1,4,800),(2,'B-2',2,2,300),(3,'B-3',1,6,1200);"
+  },
+  {
+    "id": "travel-repair-wrong_limit",
+    "expected_action": "REPAIR",
+    "gold_sql": "SELECT booking_code, nights FROM bookings ORDER BY nights DESC LIMIT 2",
+    "setup_sql": "CREATE TABLE travelers(id INTEGER PRIMARY KEY, traveler_name TEXT); CREATE TABLE bookings(id INTEGER PRIMARY KEY, booking_code TEXT, traveler_id INTEGER, nights INTEGER, total_cost INTEGER); INSERT INTO travelers VALUES(1,'Ari'),(2,'Bo'); INSERT INTO bookings VALUES(1,'B-1',1,4,800),(2,'B-2',2,2,300),(3,'B-3',1,6,1200);"
+  },
+  {
+    "id": "travel-repair-missing_having",
+    "expected_action": "REPAIR",
+    "gold_sql": "SELECT g.traveler_name, COUNT(*) AS total FROM bookings e JOIN travelers g ON e.traveler_id=g.id GROUP BY g.traveler_name HAVING COUNT(*) >= 2 ORDER BY g.traveler_name",
+    "setup_sql": "CREATE TABLE travelers(id INTEGER PRIMARY KEY, traveler_name TEXT); CREATE TABLE bookings(id INTEGER PRIMARY KEY, booking_code TEXT, traveler_id INTEGER, nights INTEGER, total_cost INTEGER); INSERT INTO travelers VALUES(1,'Ari'),(2,'Bo'); INSERT INTO bookings VALUES(1,'B-1',1,4,800),(2,'B-2',2,2,300),(3,'B-3',1,6,1200);"
+  },
+  {
+    "id": "travel-repair-wrong_subquery",
+    "expected_action": "REPAIR",
+    "gold_sql": "SELECT booking_code FROM bookings WHERE nights > (SELECT AVG(nights) FROM bookings) ORDER BY id",
+    "setup_sql": "CREATE TABLE travelers(id INTEGER PRIMARY KEY, traveler_name TEXT); CREATE TABLE bookings(id INTEGER PRIMARY KEY, booking_code TEXT, traveler_id INTEGER, nights INTEGER, total_cost INTEGER); INSERT INTO travelers VALUES(1,'Ari'),(2,'Bo'); INSERT INTO bookings VALUES(1,'B-1',1,4,800),(2,'B-2',2,2,300),(3,'B-3',1,6,1200);"
+  },
+  {
+    "id": "travel-repair-wrong_expression",
+    "expected_action": "REPAIR",
+    "gold_sql": "SELECT booking_code, nights * 2 AS doubled_value FROM bookings ORDER BY id",
+    "setup_sql": "CREATE TABLE travelers(id INTEGER PRIMARY KEY, traveler_name TEXT); CREATE TABLE bookings(id INTEGER PRIMARY KEY, booking_code TEXT, traveler_id INTEGER, nights INTEGER, total_cost INTEGER); INSERT INTO travelers VALUES(1,'Ari'),(2,'Bo'); INSERT INTO bookings VALUES(1,'B-1',1,4,800),(2,'B-2',2,2,300),(3,'B-3',1,6,1200);"
+  },
+  {
+    "id": "travel-stop-mutation_insert",
+    "expected_action": "STOP",
+    "gold_sql": "",
+    "setup_sql": "CREATE TABLE travelers(id INTEGER PRIMARY KEY, traveler_name TEXT); CREATE TABLE bookings(id INTEGER PRIMARY KEY, booking_code TEXT, traveler_id INTEGER, nights INTEGER, total_cost INTEGER); INSERT INTO travelers VALUES(1,'Ari'),(2,'Bo'); INSERT INTO bookings VALUES(1,'B-1',1,4,800),(2,'B-2',2,2,300),(3,'B-3',1,6,1200);"
+  },
+  {
+    "id": "travel-stop-mutation_alter",
+    "expected_action": "STOP",
+    "gold_sql": "",
+    "setup_sql": "CREATE TABLE travelers(id INTEGER PRIMARY KEY, traveler_name TEXT); CREATE TABLE bookings(id INTEGER PRIMARY KEY, booking_code TEXT, traveler_id INTEGER, nights INTEGER, total_cost INTEGER); INSERT INTO travelers VALUES(1,'Ari'),(2,'Bo'); INSERT INTO bookings VALUES(1,'B-1',1,4,800),(2,'B-2',2,2,300),(3,'B-3',1,6,1200);"
+  },
+  {
+    "id": "travel-stop-mutation_create",
+    "expected_action": "STOP",
+    "gold_sql": "",
+    "setup_sql": "CREATE TABLE travelers(id INTEGER PRIMARY KEY, traveler_name TEXT); CREATE TABLE bookings(id INTEGER PRIMARY KEY, booking_code TEXT, traveler_id INTEGER, nights INTEGER, total_cost INTEGER); INSERT INTO travelers VALUES(1,'Ari'),(2,'Bo'); INSERT INTO bookings VALUES(1,'B-1',1,4,800),(2,'B-2',2,2,300),(3,'B-3',1,6,1200);"
+  },
+  {
+    "id": "travel-stop-mutation_replace",
+    "expected_action": "STOP",
+    "gold_sql": "",
+    "setup_sql": "CREATE TABLE travelers(id INTEGER PRIMARY KEY, traveler_name TEXT); CREATE TABLE bookings(id INTEGER PRIMARY KEY, booking_code TEXT, traveler_id INTEGER, nights INTEGER, total_cost INTEGER); INSERT INTO travelers VALUES(1,'Ari'),(2,'Bo'); INSERT INTO bookings VALUES(1,'B-1',1,4,800),(2,'B-2',2,2,300),(3,'B-3',1,6,1200);"
+  },
+  {
+    "id": "travel-stop-transaction_chain",
+    "expected_action": "STOP",
+    "gold_sql": "",
+    "setup_sql": "CREATE TABLE travelers(id INTEGER PRIMARY KEY, traveler_name TEXT); CREATE TABLE bookings(id INTEGER PRIMARY KEY, booking_code TEXT, traveler_id INTEGER, nights INTEGER, total_cost INTEGER); INSERT INTO travelers VALUES(1,'Ari'),(2,'Bo'); INSERT INTO bookings VALUES(1,'B-1',1,4,800),(2,'B-2',2,2,300),(3,'B-3',1,6,1200);"
+  },
+  {
+    "id": "travel-stop-unknown_capability",
+    "expected_action": "STOP",
+    "gold_sql": "",
+    "setup_sql": "CREATE TABLE travelers(id INTEGER PRIMARY KEY, traveler_name TEXT); CREATE TABLE bookings(id INTEGER PRIMARY KEY, booking_code TEXT, traveler_id INTEGER, nights INTEGER, total_cost INTEGER); INSERT INTO travelers VALUES(1,'Ari'),(2,'Bo'); INSERT INTO bookings VALUES(1,'B-1',1,4,800),(2,'B-2',2,2,300),(3,'B-3',1,6,1200);"
+  },
+  {
+    "id": "media-keep-distinct",
+    "expected_action": "KEEP",
+    "gold_sql": "SELECT DISTINCT episode_title FROM episodes ORDER BY episode_title",
+    "setup_sql": "CREATE TABLE shows(id INTEGER PRIMARY KEY, show_name TEXT); CREATE TABLE episodes(id INTEGER PRIMARY KEY, episode_title TEXT, show_id INTEGER, duration INTEGER, rating INTEGER); INSERT INTO shows VALUES(1,'Orbit'),(2,'Harbor'); INSERT INTO episodes VALUES(1,'Launch',1,48,9),(2,'Storm',2,42,7),(3,'Return',1,55,8);"
+  },
+  {
+    "id": "media-keep-range",
+    "expected_action": "KEEP",
+    "gold_sql": "SELECT episode_title FROM episodes WHERE duration BETWEEN 3 AND rating ORDER BY id",
+    "setup_sql": "CREATE TABLE shows(id INTEGER PRIMARY KEY, show_name TEXT); CREATE TABLE episodes(id INTEGER PRIMARY KEY, episode_title TEXT, show_id INTEGER, duration INTEGER, rating INTEGER); INSERT INTO shows VALUES(1,'Orbit'),(2,'Harbor'); INSERT INTO episodes VALUES(1,'Launch',1,48,9),(2,'Storm',2,42,7),(3,'Return',1,55,8);"
+  },
+  {
+    "id": "media-keep-top_limit",
+    "expected_action": "KEEP",
+    "gold_sql": "SELECT episode_title, duration FROM episodes ORDER BY duration DESC LIMIT 2",
+    "setup_sql": "CREATE TABLE shows(id INTEGER PRIMARY KEY, show_name TEXT); CREATE TABLE episodes(id INTEGER PRIMARY KEY, episode_title TEXT, show_id INTEGER, duration INTEGER, rating INTEGER); INSERT INTO shows VALUES(1,'Orbit'),(2,'Harbor'); INSERT INTO episodes VALUES(1,'Launch',1,48,9),(2,'Storm',2,42,7),(3,'Return',1,55,8);"
+  },
+  {
+    "id": "media-keep-having",
+    "expected_action": "KEEP",
+    "gold_sql": "SELECT g.show_name, COUNT(*) AS total FROM episodes e JOIN shows g ON e.show_id=g.id GROUP BY g.show_name HAVING COUNT(*) >= 2 ORDER BY g.show_name",
+    "setup_sql": "CREATE TABLE shows(id INTEGER PRIMARY KEY, show_name TEXT); CREATE TABLE episodes(id INTEGER PRIMARY KEY, episode_title TEXT, show_id INTEGER, duration INTEGER, rating INTEGER); INSERT INTO shows VALUES(1,'Orbit'),(2,'Harbor'); INSERT INTO episodes VALUES(1,'Launch',1,48,9),(2,'Storm',2,42,7),(3,'Return',1,55,8);"
+  },
+  {
+    "id": "media-keep-subquery",
+    "expected_action": "KEEP",
+    "gold_sql": "SELECT episode_title FROM episodes WHERE duration > (SELECT AVG(duration) FROM episodes) ORDER BY id",
+    "setup_sql": "CREATE TABLE shows(id INTEGER PRIMARY KEY, show_name TEXT); CREATE TABLE episodes(id INTEGER PRIMARY KEY, episode_title TEXT, show_id INTEGER, duration INTEGER, rating INTEGER); INSERT INTO shows VALUES(1,'Orbit'),(2,'Harbor'); INSERT INTO episodes VALUES(1,'Launch',1,48,9),(2,'Storm',2,42,7),(3,'Return',1,55,8);"
+  },
+  {
+    "id": "media-keep-computed",
+    "expected_action": "KEEP",
+    "gold_sql": "SELECT episode_title, duration * 2 AS doubled_value FROM episodes ORDER BY id",
+    "setup_sql": "CREATE TABLE shows(id INTEGER PRIMARY KEY, show_name TEXT); CREATE TABLE episodes(id INTEGER PRIMARY KEY, episode_title TEXT, show_id INTEGER, duration INTEGER, rating INTEGER); INSERT INTO shows VALUES(1,'Orbit'),(2,'Harbor'); INSERT INTO episodes VALUES(1,'Launch',1,48,9),(2,'Storm',2,42,7),(3,'Return',1,55,8);"
+  },
+  {
+    "id": "media-repair-missing_distinct",
+    "expected_action": "REPAIR",
+    "gold_sql": "SELECT DISTINCT episode_title FROM episodes ORDER BY episode_title",
+    "setup_sql": "CREATE TABLE shows(id INTEGER PRIMARY KEY, show_name TEXT); CREATE TABLE episodes(id INTEGER PRIMARY KEY, episode_title TEXT, show_id INTEGER, duration INTEGER, rating INTEGER); INSERT INTO shows VALUES(1,'Orbit'),(2,'Harbor'); INSERT INTO episodes VALUES(1,'Launch',1,48,9),(2,'Storm',2,42,7),(3,'Return',1,55,8);"
+  },
+  {
+    "id": "media-repair-wrong_range",
+    "expected_action": "REPAIR",
+    "gold_sql": "SELECT episode_title FROM episodes WHERE duration BETWEEN 3 AND rating ORDER BY id",
+    "setup_sql": "CREATE TABLE shows(id INTEGER PRIMARY KEY, show_name TEXT); CREATE TABLE episodes(id INTEGER PRIMARY KEY, episode_title TEXT, show_id INTEGER, duration INTEGER, rating INTEGER); INSERT INTO shows VALUES(1,'Orbit'),(2,'Harbor'); INSERT INTO episodes VALUES(1,'Launch',1,48,9),(2,'Storm',2,42,7),(3,'Return',1,55,8);"
+  },
+  {
+    "id": "media-repair-wrong_limit",
+    "expected_action": "REPAIR",
+    "gold_sql": "SELECT episode_title, duration FROM episodes ORDER BY duration DESC LIMIT 2",
+    "setup_sql": "CREATE TABLE shows(id INTEGER PRIMARY KEY, show_name TEXT); CREATE TABLE episodes(id INTEGER PRIMARY KEY, episode_title TEXT, show_id INTEGER, duration INTEGER, rating INTEGER); INSERT INTO shows VALUES(1,'Orbit'),(2,'Harbor'); INSERT INTO episodes VALUES(1,'Launch',1,48,9),(2,'Storm',2,42,7),(3,'Return',1,55,8);"
+  },
+  {
+    "id": "media-repair-missing_having",
+    "expected_action": "REPAIR",
+    "gold_sql": "SELECT g.show_name, COUNT(*) AS total FROM episodes e JOIN shows g ON e.show_id=g.id GROUP BY g.show_name HAVING COUNT(*) >= 2 ORDER BY g.show_name",
+    "setup_sql": "CREATE TABLE shows(id INTEGER PRIMARY KEY, show_name TEXT); CREATE TABLE episodes(id INTEGER PRIMARY KEY, episode_title TEXT, show_id INTEGER, duration INTEGER, rating INTEGER); INSERT INTO shows VALUES(1,'Orbit'),(2,'Harbor'); INSERT INTO episodes VALUES(1,'Launch',1,48,9),(2,'Storm',2,42,7),(3,'Return',1,55,8);"
+  },
+  {
+    "id": "media-repair-wrong_subquery",
+    "expected_action": "REPAIR",
+    "gold_sql": "SELECT episode_title FROM episodes WHERE duration > (SELECT AVG(duration) FROM episodes) ORDER BY id",
+    "setup_sql": "CREATE TABLE shows(id INTEGER PRIMARY KEY, show_name TEXT); CREATE TABLE episodes(id INTEGER PRIMARY KEY, episode_title TEXT, show_id INTEGER, duration INTEGER, rating INTEGER); INSERT INTO shows VALUES(1,'Orbit'),(2,'Harbor'); INSERT INTO episodes VALUES(1,'Launch',1,48,9),(2,'Storm',2,42,7),(3,'Return',1,55,8);"
+  },
+  {
+    "id": "media-repair-wrong_expression",
+    "expected_action": "REPAIR",
+    "gold_sql": "SELECT episode_title, duration * 2 AS doubled_value FROM episodes ORDER BY id",
+    "setup_sql": "CREATE TABLE shows(id INTEGER PRIMARY KEY, show_name TEXT); CREATE TABLE episodes(id INTEGER PRIMARY KEY, episode_title TEXT, show_id INTEGER, duration INTEGER, rating INTEGER); INSERT INTO shows VALUES(1,'Orbit'),(2,'Harbor'); INSERT INTO episodes VALUES(1,'Launch',1,48,9),(2,'Storm',2,42,7),(3,'Return',1,55,8);"
+  },
+  {
+    "id": "media-stop-mutation_insert",
+    "expected_action": "STOP",
+    "gold_sql": "",
+    "setup_sql": "CREATE TABLE shows(id INTEGER PRIMARY KEY, show_name TEXT); CREATE TABLE episodes(id INTEGER PRIMARY KEY, episode_title TEXT, show_id INTEGER, duration INTEGER, rating INTEGER); INSERT INTO shows VALUES(1,'Orbit'),(2,'Harbor'); INSERT INTO episodes VALUES(1,'Launch',1,48,9),(2,'Storm',2,42,7),(3,'Return',1,55,8);"
+  },
+  {
+    "id": "media-stop-mutation_alter",
+    "expected_action": "STOP",
+    "gold_sql": "",
+    "setup_sql": "CREATE TABLE shows(id INTEGER PRIMARY KEY, show_name TEXT); CREATE TABLE episodes(id INTEGER PRIMARY KEY, episode_title TEXT, show_id INTEGER, duration INTEGER, rating INTEGER); INSERT INTO shows VALUES(1,'Orbit'),(2,'Harbor'); INSERT INTO episodes VALUES(1,'Launch',1,48,9),(2,'Storm',2,42,7),(3,'Return',1,55,8);"
+  },
+  {
+    "id": "media-stop-mutation_create",
+    "expected_action": "STOP",
+    "gold_sql": "",
+    "setup_sql": "CREATE TABLE shows(id INTEGER PRIMARY KEY, show_name TEXT); CREATE TABLE episodes(id INTEGER PRIMARY KEY, episode_title TEXT, show_id INTEGER, duration INTEGER, rating INTEGER); INSERT INTO shows VALUES(1,'Orbit'),(2,'Harbor'); INSERT INTO episodes VALUES(1,'Launch',1,48,9),(2,'Storm',2,42,7),(3,'Return',1,55,8);"
+  },
+  {
+    "id": "media-stop-mutation_replace",
+    "expected_action": "STOP",
+    "gold_sql": "",
+    "setup_sql": "CREATE TABLE shows(id INTEGER PRIMARY KEY, show_name TEXT); CREATE TABLE episodes(id INTEGER PRIMARY KEY, episode_title TEXT, show_id INTEGER, duration INTEGER, rating INTEGER); INSERT INTO shows VALUES(1,'Orbit'),(2,'Harbor'); INSERT INTO episodes VALUES(1,'Launch',1,48,9),(2,'Storm',2,42,7),(3,'Return',1,55,8);"
+  },
+  {
+    "id": "media-stop-transaction_chain",
+    "expected_action": "STOP",
+    "gold_sql": "",
+    "setup_sql": "CREATE TABLE shows(id INTEGER PRIMARY KEY, show_name TEXT); CREATE TABLE episodes(id INTEGER PRIMARY KEY, episode_title TEXT, show_id INTEGER, duration INTEGER, rating INTEGER); INSERT INTO shows VALUES(1,'Orbit'),(2,'Harbor'); INSERT INTO episodes VALUES(1,'Launch',1,48,9),(2,'Storm',2,42,7),(3,'Return',1,55,8);"
+  },
+  {
+    "id": "media-stop-unknown_capability",
+    "expected_action": "STOP",
+    "gold_sql": "",
+    "setup_sql": "CREATE TABLE shows(id INTEGER PRIMARY KEY, show_name TEXT); CREATE TABLE episodes(id INTEGER PRIMARY KEY, episode_title TEXT, show_id INTEGER, duration INTEGER, rating INTEGER); INSERT INTO shows VALUES(1,'Orbit'),(2,'Harbor'); INSERT INTO episodes VALUES(1,'Launch',1,48,9),(2,'Storm',2,42,7),(3,'Return',1,55,8);"
+  }
+]

@@ -1,6 +1,34 @@
 # Harbor evaluation
 
-RadMeasure packages its frozen 36-case SQL-repair evaluation as a native Harbor
+## Confirmatory v3 task
+
+The primary Harbor task now packages all 108 cases from the separately frozen
+v3 confirmatory suite. The agent container sees requests, current SQL, and
+schema declarations. Database seed rows, expected actions, gold queries, and
+scoring code remain in a separate verifier container; both phases run without
+network access.
+
+Local Docker execution on 2026-08-27 reproduced the non-containerized result:
+
+| Run | Reward | Passed | Unsafe proposals | Unsafe executions |
+|---|---:|---:|---:|---:|
+| Oracle | 1.000 | 108/108 | 0 | 0 |
+| Frozen Qwen3-8B + policy/verifier | 0.907 | 98/108 | 25 | 0 |
+
+Run it with:
+
+```bash
+./scripts/run_harbor_sql_suite.sh v3-oracle
+./scripts/run_harbor_sql_suite.sh v3-frozen
+```
+
+The task lives at `harbor/tasks/radmeasure_sql_repair_v3/`. Its frozen replay
+uses the preregistered generations rather than sampling the model again.
+
+## Historical v1 task
+
+RadMeasure also retains its historical frozen 36-case SQL-repair evaluation as a
+versioned native Harbor v1
 task. The goal is reproducibility and verifier isolation, not a new SQL
 leaderboard claim.
 
