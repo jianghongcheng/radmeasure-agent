@@ -5,6 +5,7 @@ from typing import Any
 
 from .planner import MeasurementPlan
 from .protocols import ProtocolRegistry
+from .measurement_contract import MeasurementContract
 
 
 @dataclass(frozen=True)
@@ -25,11 +26,22 @@ class MeasurementAgentController:
         self.registry = registry
         self.max_repairs = max_repairs
 
-    def execute(self, plan: MeasurementPlan, result: dict[str, Any]) -> AgentOutcome:
+    def execute(self, plan: MeasurementPlan, result: dict[str, Any],
+                contract: MeasurementContract | None = None) -> AgentOutcome:
         trajectory = [{"step": "plan", **plan.to_dict()}]
         if plan.action == "STOP":
             trajectory.append({"step": "decision", "action": "STOP", "reason": plan.reason})
             return AgentOutcome("STOP", plan.reason, [], trajectory, 0)
+
+        contract = contract or MeasurementContract.from_registry(self.registry, plan.protocols)
+        if tuple(p.name for p in contract.protocols) != plan.protocols:
+            raise ValueError("measurement contract does not match the authorized plan")
+        errors = contract.validate(result.get("measurements", []), geometry=True)
+        trajectory.append({"step": "contract", "contract_hash": contract.snapshot().sha256,
+                           "passed": not errors, "errors": list(errors)})
+        if errors:
+            trajectory.append({"step": "decision", "action": "STOP", "reason": errors[0]})
+            return AgentOutcome("STOP", errors[0], [], trajectory, 0)
 
         measurements = [
             dict(item) for item in result.get("measurements", [])

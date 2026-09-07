@@ -42,12 +42,14 @@ def create_app():
             raise HTTPException(status_code=status, detail=str(exc)) from exc
 
     class AnalysisPayload(BaseModel):
+        model_config = {"extra": "forbid"}
         request_id: str = Field(min_length=1, max_length=128)
         image_id: str = Field(min_length=1, max_length=512)
         question: str = Field(min_length=1, max_length=4000)
         top_k: int = Field(default=3, ge=1, le=20)
 
     class JobPayload(BaseModel):
+        model_config = {"extra": "forbid"}
         image_id: str = Field(min_length=1, max_length=512)
         question: str = Field(default="Measure HVA and IMA with supporting evidence.", min_length=1, max_length=4000)
         top_k: int = Field(default=3, ge=1, le=20)
@@ -84,7 +86,7 @@ def create_app():
     app = FastAPI(
         title="RadMeasure API",
         version="0.4.0",
-        description="Verifiable multimodal execution for protocol-driven radiographic measurements",
+        description="Medical imaging measurement agent for registered HVA/IMA protocols and human review",
     )
     cache: dict[str, dict] = {}
 

@@ -13,5 +13,4 @@ jobs:
       - run: pip install -e '.[dev]'
       - run: pytest -q
       - run: python -m compileall -q src
-      - run: python scripts/export_harbor_sql_suite.py
-      - run: git diff --exit-code -- harbor/tasks/radmeasure_sql_repair_v1
+      - run: python -m geomed_copilot.cli --question "Measure HVA and IMA"

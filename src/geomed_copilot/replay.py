@@ -18,6 +18,9 @@ def build_replay_payload(job: Job, trace_id: str, submitted_by: str) -> dict[str
         "_replay_root_job_id": payload.get("_replay_root_job_id") or job.job_id,
         "_replay_of_trace_id": original_trace,
     })
+    contract_hash = (job.result or {}).get("execution_record", {}).get("contract", {}).get("sha256")
+    if contract_hash:
+        payload["_execution_contract_sha256"] = contract_hash
     return payload
 
 

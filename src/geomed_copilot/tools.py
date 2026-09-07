@@ -33,6 +33,7 @@ class GeoMedTools:
             )
         return {
             "service": "radmeasure",
+            "domain": "medical_imaging_measurement",
             "mode": mode,
             "live_encoder_inference": False,
             "accepted_input": "image_id",
