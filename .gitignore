@@ -39,6 +39,12 @@ docs/*
 !docs/USAGE.md
 !docs/ARCHITECTURE.md
 !docs/EVALUATION.md
+!docs/assets/
+docs/assets/*
+!docs/assets/dashboard.png
+!docs/results/
+docs/results/*
+!docs/results/selective_repair_summary.json
 *.sqlite
 *.sqlite3
 *.db

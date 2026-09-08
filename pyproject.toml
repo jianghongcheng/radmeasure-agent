@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "radmeasure"
-version = "0.4.0"
+version = "0.5.0"
 description = "Medical imaging measurement agent with registered HVA/IMA protocols and auditable review"
 requires-python = ">=3.10"
 dependencies = []
@@ -29,12 +29,9 @@ dev = [
 prod = ["psycopg[binary]>=3.2,<4", "boto3>=1.35,<2", "pydicom>=3,<4"]
 
 [project.scripts]
-geomed-copilot = "geomed_copilot.cli:main"
-geomed-mcp = "geomed_copilot.mcp_server:main"
-geomed-worker = "geomed_copilot.worker:main"
-radmeasure = "geomed_copilot.cli:main"
-radmeasure-mcp = "geomed_copilot.mcp_server:main"
-radmeasure-worker = "geomed_copilot.worker:main"
+radmeasure = "radmeasure.cli:main"
+radmeasure-mcp = "radmeasure.mcp_server:main"
+radmeasure-worker = "radmeasure.worker:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]

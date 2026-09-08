@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from geomed_copilot.storage import LocalArtifactStore
+from radmeasure.storage import LocalArtifactStore
 
 
 def test_artifact_store_is_content_addressed_and_deduplicates(tmp_path: Path):

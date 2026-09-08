@@ -1,9 +1,9 @@
 import pytest
 
-from geomed_copilot.geometry_repair import (
+from radmeasure.geometry_repair import (
     MovePoint, axis_rotation_corruption, oracle_repair_step, program_aware_oracle_step,
 )
-from geomed_copilot.measurement_program import (
+from radmeasure.measurement_program import (
     HVA_PROGRAM, IMA_PROGRAM, denormalize_points, execute_program,
 )
 

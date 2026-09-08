@@ -37,7 +37,7 @@ def deidentify_dicom(content: bytes) -> tuple[bytes, list[str]]:
             del dataset[keyword]
     dataset.remove_private_tags()
     dataset.PatientIdentityRemoved = "YES"
-    dataset.DeidentificationMethod = "GeoMed direct-identifier removal v1"
+    dataset.DeidentificationMethod = "RadMeasure direct-identifier removal v1"
     stream = io.BytesIO()
     dataset.save_as(stream, enforce_file_format=True)
     return stream.getvalue(), removed

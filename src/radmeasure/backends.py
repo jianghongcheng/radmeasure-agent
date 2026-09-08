@@ -30,21 +30,21 @@ class ArtifactStore(Protocol):
 
 
 def job_repository_from_env() -> JobRepository:
-    database_url = os.environ.get("GEOMED_DATABASE_URL")
+    database_url = os.environ.get("RADMEASURE_DATABASE_URL")
     if database_url:
         from .postgres_jobs import PostgresJobRepository
         return PostgresJobRepository(database_url)
-    return SqliteJobRepository(Path(os.environ.get("GEOMED_JOB_DB", "runtime/jobs.db")))
+    return SqliteJobRepository(Path(os.environ.get("RADMEASURE_JOB_DB", "runtime/jobs.db")))
 
 
 def artifact_store_from_env() -> ArtifactStore:
-    endpoint = os.environ.get("GEOMED_S3_ENDPOINT")
+    endpoint = os.environ.get("RADMEASURE_S3_ENDPOINT")
     if endpoint:
         from .s3_storage import S3ArtifactStore
         return S3ArtifactStore(
             endpoint_url=endpoint,
-            bucket=os.environ.get("GEOMED_S3_BUCKET", "geomed-artifacts"),
-            access_key=os.environ.get("GEOMED_S3_ACCESS_KEY", "minioadmin"),
-            secret_key=os.environ.get("GEOMED_S3_SECRET_KEY", "minioadmin"),
+            bucket=os.environ.get("RADMEASURE_S3_BUCKET", "radmeasure-artifacts"),
+            access_key=os.environ.get("RADMEASURE_S3_ACCESS_KEY", "minioadmin"),
+            secret_key=os.environ.get("RADMEASURE_S3_SECRET_KEY", "minioadmin"),
         )
-    return LocalArtifactStore(Path(os.environ.get("GEOMED_ARTIFACT_ROOT", "runtime/artifacts")))
+    return LocalArtifactStore(Path(os.environ.get("RADMEASURE_ARTIFACT_ROOT", "runtime/artifacts")))

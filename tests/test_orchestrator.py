@@ -1,12 +1,12 @@
-from geomed_copilot.evaluation import citation_correctness, tool_success_rate
-from geomed_copilot.models import CopilotRequest
-from geomed_copilot.orchestrator import GeoMedCopilot
-from geomed_copilot.retrieval import CaseRetriever, HybridRetriever
-from geomed_copilot.sample_data import CASES, DEMO_LANDMARKS, EVIDENCE
+from radmeasure.evaluation import citation_correctness, tool_success_rate
+from radmeasure.models import CopilotRequest
+from radmeasure.orchestrator import RadMeasureOrchestrator
+from radmeasure.retrieval import CaseRetriever, HybridRetriever
+from radmeasure.sample_data import CASES, DEMO_LANDMARKS, EVIDENCE
 
 
 def test_end_to_end_offline_workflow_is_traceable():
-    copilot = GeoMedCopilot(HybridRetriever(EVIDENCE), CaseRetriever(CASES))
+    copilot = RadMeasureOrchestrator(HybridRetriever(EVIDENCE), CaseRetriever(CASES))
     response = copilot.run(CopilotRequest(
         question="How is HVA measured using the first metatarsal?",
         image_id="test-001",
@@ -23,7 +23,7 @@ def test_end_to_end_offline_workflow_is_traceable():
 
 
 def test_missing_landmarks_returns_partial_without_inventing_measurement():
-    copilot = GeoMedCopilot(HybridRetriever(EVIDENCE), CaseRetriever(CASES))
+    copilot = RadMeasureOrchestrator(HybridRetriever(EVIDENCE), CaseRetriever(CASES))
     response = copilot.run(CopilotRequest(
         question="Measure HVA",
         image_id="test-002",

@@ -18,7 +18,7 @@ OUTPUT_COLUMNS = (
 
 
 def opaque_id(filename: str, side: str, occurrence: int) -> str:
-    raw = f"geomed-copilot:v1:{filename}:{side}:{occurrence}".encode()
+    raw = f"radmeasure:v1:{filename}:{side}:{occurrence}".encode()
     return hashlib.sha256(raw).hexdigest()[:20]
 
 

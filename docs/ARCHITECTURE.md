@@ -6,7 +6,7 @@ checks whether to retain, repair, or route a result for review.
 
 ## Source map
 
-All files below are relative to `src/geomed_copilot/`.
+All files below are relative to `src/radmeasure/`.
 
 | Component | Files |
 | --- | --- |
@@ -19,7 +19,7 @@ All files below are relative to `src/geomed_copilot/`.
 | Records and replay | `execution_record.py`, `replay.py` |
 | HTTP, dashboard, and MCP | `api.py`, `dashboard.py`, `mcp_server.py` |
 
-## Measurement boundaries
+## Measurement execution
 
 The pipeline accepts registered-case evaluation and uploaded-radiograph jobs.
 Contracts reject missing or duplicate measurements, invalid numbers, and
@@ -34,18 +34,18 @@ Uploads use a separate inference path and always require review, including after
 a proposed repair. A completed synthetic evaluation is not clinical approval.
 An unavailable inference adapter does not produce a fabricated upload result.
 
-## Service boundaries
+## Jobs and interfaces
 
-The local demo persists jobs in SQLite. Worker claims, leases, retries, and
-execution records support inspectable processing. PostgreSQL and object storage
-adapters are optional; their presence is not proof of a tested deployment.
+The local demo persists jobs in SQLite. Workers claim tasks, retry eligible
+failures, and retain execution records. PostgreSQL and object storage adapters
+are optional integrations with separate deployment-validation requirements.
 
 API-key roles distinguish reading, submission, and admin review. Review can
-approve, reject, or record corrected measurements; it is not clinical certification.
+approve, reject, or record corrected measurements.
 Traces connect jobs and events. Replays preserve lineage and check contract
 compatibility, but rerunning an upload with changed weights is not deterministic
 replay of its former prediction.
 
-MCP direct analysis does not automatically inherit the durable API queue.
-No prospective clinical validation, production-user impact, or sustained-load
-service guarantee is demonstrated.
+MCP direct analysis runs synchronously; durable job handling belongs to the API
+and worker path. Clinical validation and sustained-load operation have not been
+established by the local software checks.

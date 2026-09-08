@@ -21,7 +21,7 @@ ANGLE_LINE_PAIRS = {
 }
 
 
-class GeoMedCopilot:
+class RadMeasureOrchestrator:
     """Deterministic tool orchestrator with auditable traces and fallbacks."""
 
     def __init__(

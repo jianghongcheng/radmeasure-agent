@@ -6,8 +6,8 @@ import pytest
 pytest.importorskip("fastapi")
 httpx = pytest.importorskip("httpx")
 
-from geomed_copilot.api import create_app
-from geomed_copilot.jobs import SqliteJobRepository
+from radmeasure.api import create_app
+from radmeasure.jobs import SqliteJobRepository
 
 
 def request(app, method, path, **kwargs):
@@ -20,10 +20,10 @@ def request(app, method, path, **kwargs):
 
 def test_trace_query_and_replay_endpoint_preserve_lineage(tmp_path, monkeypatch):
     database = tmp_path / "jobs.db"
-    monkeypatch.setenv("GEOMED_DEMO_MODE", "1")
-    monkeypatch.setenv("GEOMED_JOB_DB", str(database))
+    monkeypatch.setenv("RADMEASURE_DEMO_MODE", "1")
+    monkeypatch.setenv("RADMEASURE_JOB_DB", str(database))
     monkeypatch.setenv(
-        "GEOMED_API_KEYS",
+        "RADMEASURE_API_KEYS",
         json.dumps({
             "viewer": {"name": "viewer", "role": "viewer"},
             "operator": {"name": "operator", "role": "operator"},
@@ -77,10 +77,10 @@ def test_trace_query_and_replay_endpoint_preserve_lineage(tmp_path, monkeypatch)
 
 
 def test_nonterminal_job_replay_is_rejected(tmp_path, monkeypatch):
-    monkeypatch.setenv("GEOMED_DEMO_MODE", "1")
-    monkeypatch.setenv("GEOMED_JOB_DB", str(tmp_path / "jobs.db"))
+    monkeypatch.setenv("RADMEASURE_DEMO_MODE", "1")
+    monkeypatch.setenv("RADMEASURE_JOB_DB", str(tmp_path / "jobs.db"))
     monkeypatch.setenv(
-        "GEOMED_API_KEYS",
+        "RADMEASURE_API_KEYS",
         json.dumps({"operator": {"name": "operator", "role": "operator"}}),
     )
     app = create_app()
@@ -99,10 +99,10 @@ def test_nonterminal_job_replay_is_rejected(tmp_path, monkeypatch):
 
 
 def test_protocol_registry_and_constrained_plan_are_exposed(tmp_path, monkeypatch):
-    monkeypatch.setenv("GEOMED_DEMO_MODE", "1")
-    monkeypatch.setenv("GEOMED_JOB_DB", str(tmp_path / "jobs.db"))
+    monkeypatch.setenv("RADMEASURE_DEMO_MODE", "1")
+    monkeypatch.setenv("RADMEASURE_JOB_DB", str(tmp_path / "jobs.db"))
     monkeypatch.setenv(
-        "GEOMED_API_KEYS",
+        "RADMEASURE_API_KEYS",
         json.dumps({"viewer": {"name": "viewer", "role": "viewer"}}),
     )
     app = create_app()

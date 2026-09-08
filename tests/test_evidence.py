@@ -1,7 +1,7 @@
 from pathlib import Path
 
-from geomed_copilot.evidence import load_evidence_catalog
-from geomed_copilot.retrieval import HybridRetriever
+from radmeasure.evidence import load_evidence_catalog
+from radmeasure.retrieval import HybridRetriever
 
 
 def test_real_evidence_catalog_has_traceable_sources():

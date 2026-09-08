@@ -8,7 +8,7 @@ import math
 import statistics
 from pathlib import Path
 
-from geomed_copilot.artifact_predictor import FrozenPredictionArtifact
+from radmeasure.artifact_predictor import FrozenPredictionArtifact
 
 
 def percentile(values: list[float], q: float) -> float:

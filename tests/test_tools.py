@@ -1,4 +1,4 @@
-from geomed_copilot.tools import GeoMedTools
+from radmeasure.tools import RadMeasureTools
 
 
 class _Predictor:
@@ -23,7 +23,7 @@ class _Service:
 
 
 def test_capabilities_are_honest_about_replay_backend():
-    tools = GeoMedTools(_Service())
+    tools = RadMeasureTools(_Service())
     capabilities = tools.capabilities()
     assert capabilities["available_cases"] == 2
     assert capabilities["accepted_input"] == "image_id"
@@ -31,14 +31,14 @@ def test_capabilities_are_honest_about_replay_backend():
 
 
 def test_analyze_validates_arguments_and_preserves_provenance():
-    tools = GeoMedTools(_Service())
+    tools = RadMeasureTools(_Service())
     result = tools.analyze_radiograph(" case-1 ", " Measure HVA ", 2)
     assert result["image_id"] == "case-1"
     assert result["provenance"]["live_encoder_inference"] is False
 
 
 def test_analyze_rejects_invalid_arguments():
-    tools = GeoMedTools(_Service())
+    tools = RadMeasureTools(_Service())
     for image_id, question, top_k in [("", "x", 1), ("x", "", 1), ("x", "y", 0)]:
         try:
             tools.analyze_radiograph(image_id, question, top_k)

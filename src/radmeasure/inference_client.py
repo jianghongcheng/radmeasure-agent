@@ -68,7 +68,7 @@ class InferenceClient:
                          model_id: str | None = None) -> dict:
         if self.circuit_state == "open":
             raise InferenceUnavailable("inference circuit is open")
-        selected_model = model_id or os.environ.get("GEOMED_ARTIFACT_MODEL_ID", "hvangle-resnet50")
+        selected_model = model_id or os.environ.get("RADMEASURE_ARTIFACT_MODEL_ID", "hvangle-resnet50")
         payload = json.dumps({"model_id": selected_model, "image_id": image_id,
                               "artifact_uri": artifact_uri, "media_type": media_type}).encode()
         request = urllib.request.Request(
@@ -87,10 +87,10 @@ class InferenceClient:
 
 
 def inference_client_from_env() -> InferenceClient | None:
-    url = os.environ.get("GEOMED_INFERENCE_URL")
+    url = os.environ.get("RADMEASURE_INFERENCE_URL")
     if not url:
         return None
-    token = os.environ.get("GEOMED_INFERENCE_TOKEN")
+    token = os.environ.get("RADMEASURE_INFERENCE_TOKEN")
     if not token:
-        raise RuntimeError("GEOMED_INFERENCE_TOKEN is required when inference URL is configured")
+        raise RuntimeError("RADMEASURE_INFERENCE_TOKEN is required when inference URL is configured")
     return InferenceClient(url, token)

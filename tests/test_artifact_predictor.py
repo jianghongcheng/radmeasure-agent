@@ -2,7 +2,7 @@ import csv
 
 import pytest
 
-from geomed_copilot.artifact_predictor import FrozenPredictionArtifact
+from radmeasure.artifact_predictor import FrozenPredictionArtifact
 
 
 def test_artifact_predictor_ensembles_three_seed_axes(tmp_path):

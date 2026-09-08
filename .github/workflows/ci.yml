@@ -13,4 +13,4 @@ jobs:
       - run: pip install -e '.[dev]'
       - run: pytest -q
       - run: python -m compileall -q src
-      - run: python -m geomed_copilot.cli --question "Measure HVA and IMA"
+      - run: python -m radmeasure.cli --question "Measure HVA and IMA"

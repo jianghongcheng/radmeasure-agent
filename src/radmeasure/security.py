@@ -25,10 +25,10 @@ class ApiKeyAuthorizer:
 
     @classmethod
     def from_env(cls) -> "ApiKeyAuthorizer":
-        raw = os.environ.get("GEOMED_API_KEYS")
+        raw = os.environ.get("RADMEASURE_API_KEYS")
         if not raw:
             raise RuntimeError(
-                "GEOMED_API_KEYS must be a JSON object mapping API keys to {name, role}"
+                "RADMEASURE_API_KEYS must be a JSON object mapping API keys to {name, role}"
             )
         rows = json.loads(raw)
         principals = {}

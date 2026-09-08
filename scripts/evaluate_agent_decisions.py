@@ -5,9 +5,9 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from geomed_copilot.agent_controller import MeasurementAgentController
-from geomed_copilot.planner import ConstrainedMeasurementPlanner
-from geomed_copilot.protocols import ProtocolRegistry
+from radmeasure.agent_controller import MeasurementAgentController
+from radmeasure.planner import ConstrainedMeasurementPlanner
+from radmeasure.protocols import ProtocolRegistry
 
 
 def measurement(name, predicted, analytical, discrepancy, status):

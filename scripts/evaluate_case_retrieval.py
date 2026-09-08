@@ -9,7 +9,7 @@ from pathlib import Path
 
 import numpy as np
 
-from geomed_copilot.artifact_predictor import FrozenPredictionArtifact, sha256_file
+from radmeasure.artifact_predictor import FrozenPredictionArtifact, sha256_file
 
 
 def normalize_rows(values: np.ndarray) -> np.ndarray:

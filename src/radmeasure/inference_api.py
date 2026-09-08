@@ -8,18 +8,24 @@ from .logging_config import configure_json_logging
 
 
 def create_registry() -> ModelRegistry:
-    root = Path(os.environ.get("GEOMED_DATA_ROOT", "data"))
+    root = Path(os.environ.get("RADMEASURE_DATA_ROOT", "data"))
     artifact = root / "processed" / "hvangleest" / "medimageinsight_locked_test_eval.json"
-    adapters = [LockedEvaluationAdapter(artifact)]
-    checkpoint = os.environ.get("GEOMED_RESNET_CHECKPOINT")
+    # Saved-prediction replay is optional, independent of live image adapters.
+    adapters = [LockedEvaluationAdapter(artifact)] if artifact.is_file() else []
+    checkpoint = os.environ.get("RADMEASURE_RESNET_CHECKPOINT")
     if checkpoint:
-        adapters.append(ResNet50AngleAdapter(Path(checkpoint), os.environ.get("GEOMED_MODEL_DEVICE")))
-    landmark_checkpoint = os.environ.get("GEOMED_LANDMARK_CHECKPOINT")
-    repair_checkpoint = os.environ.get("GEOMED_REPAIR_CHECKPOINT")
+        adapters.append(ResNet50AngleAdapter(Path(checkpoint), os.environ.get("RADMEASURE_MODEL_DEVICE")))
+    landmark_checkpoint = os.environ.get("RADMEASURE_LANDMARK_CHECKPOINT")
+    repair_checkpoint = os.environ.get("RADMEASURE_REPAIR_CHECKPOINT")
     if landmark_checkpoint and repair_checkpoint:
         adapters.append(IndependentGeometryRepairAdapter(
-            Path(landmark_checkpoint), Path(repair_checkpoint), os.environ.get("GEOMED_MODEL_DEVICE")
+            Path(landmark_checkpoint), Path(repair_checkpoint), os.environ.get("RADMEASURE_MODEL_DEVICE")
         ))
+    if not adapters:
+        raise ValueError(
+            "No inference adapters configured. Set RADMEASURE_RESNET_CHECKPOINT, "
+            "both repair checkpoints, or provide a saved-prediction artifact."
+        )
     return ModelRegistry(adapters)
 
 
@@ -29,9 +35,9 @@ def load_artifact(uri: str) -> bytes:
         from botocore.config import Config
         bucket, key = uri[5:].split("/", 1)
         client = boto3.client(
-            "s3", endpoint_url=os.environ["GEOMED_S3_ENDPOINT"],
-            aws_access_key_id=os.environ["GEOMED_S3_ACCESS_KEY"],
-            aws_secret_access_key=os.environ["GEOMED_S3_SECRET_KEY"],
+            "s3", endpoint_url=os.environ["RADMEASURE_S3_ENDPOINT"],
+            aws_access_key_id=os.environ["RADMEASURE_S3_ACCESS_KEY"],
+            aws_secret_access_key=os.environ["RADMEASURE_S3_SECRET_KEY"],
             config=Config(signature_version="s3v4"), region_name="us-east-1",
         )
         return client.get_object(Bucket=bucket, Key=key)["Body"].read()
@@ -46,9 +52,9 @@ def create_app():
         raise RuntimeError("Install the API extra: pip install -e '.[api]'") from exc
     configure_json_logging()
     registry = create_registry()
-    expected_token = os.environ.get("GEOMED_INFERENCE_TOKEN")
+    expected_token = os.environ.get("RADMEASURE_INFERENCE_TOKEN")
     if not expected_token:
-        raise RuntimeError("GEOMED_INFERENCE_TOKEN is required")
+        raise RuntimeError("RADMEASURE_INFERENCE_TOKEN is required")
 
     class InferenceRequest(BaseModel):
         model_id: str = Field(min_length=1, max_length=128)
@@ -64,7 +70,7 @@ def create_app():
         if not token or not hmac.compare_digest(token, expected_token):
             raise HTTPException(status_code=401, detail="invalid inference service token")
 
-    app = FastAPI(title="GeoMed Inference Service", version="1.0.0")
+    app = FastAPI(title="RadMeasure Inference Service", version="1.0.0")
 
     @app.get("/health")
     async def health() -> dict:

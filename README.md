@@ -1,33 +1,79 @@
 # RadMeasure
 
-**Radiographic measurement with geometric verification and human review.**
+**A medical imaging measurement agent with geometric verification, bounded repair, and human review.**
 
-RadMeasure is a Python research application for measuring hallux valgus angle
-(HVA) and intermetatarsal angle (IMA). It combines protocol-guided agent planning,
-measurement tools, and a review workflow, with execution records that make each
-decision inspectable.
+[![CI](https://github.com/jianghongcheng/radmeasure-agent/actions/workflows/ci.yml/badge.svg)](https://github.com/jianghongcheng/radmeasure-agent/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
-[Quick start](#quick-start) · [Usage](docs/USAGE.md) ·
-[Architecture](docs/ARCHITECTURE.md) · [Evaluation](docs/EVALUATION.md)
+RadMeasure coordinates measurement of **hallux valgus angle (HVA)** and
+**intermetatarsal angle (IMA)** in foot radiographs. A constrained planner selects
+registered protocols; measurement tools produce the angles; a controller checks
+geometry and decides whether to keep, repair, or stop a result.
 
-## Features
+[Quick start](#quick-start) · [Architecture](#architecture) · [Results](#evaluation) · [Usage](docs/USAGE.md)
 
-- **Protocol-guided planning** — select registered HVA/IMA measurements using a
-  rule-based planner or an optional LLM planner.
-- **Measurement verification** — check required outputs, numerical validity,
-  and consistency with available geometry.
-- **Bounded repair** — apply eligible corrections within explicit limits and
-  record why a result was retained or stopped.
-- **Human review** — review uploaded-image predictions, approve or reject
-  results, and record corrected measurements.
-- **Application interfaces** — run a CLI demo, use the FastAPI dashboard and
-  job endpoints, or call measurement tools through MCP.
-- **Execution history** — inspect task status, tool traces, review decisions,
-  and replay lineage.
+## Demo
+
+![RadMeasure dashboard showing a synthetic measurement workflow](docs/assets/dashboard.png)
+
+The offline demo runs the planning, measurement, and verification path on synthetic
+geometry without model downloads. Uploaded-image inference uses separately configured
+weights and always requires review. [Run the web interface](docs/USAGE.md#local-api-and-dashboard).
+
+## Architecture
+
+```mermaid
+flowchart TD
+    A[Measurement request] --> B[Constrained protocol planner]
+    B --> C{Registered action?}
+    C -->|No| S[STOP: record reason]
+    C -->|Yes| D[Run measurement tools]
+    D --> E[Validate outputs and geometry]
+    E --> F{Controller decision}
+    F -->|Checks pass| K[KEEP result]
+    F -->|Eligible independent proposal and budget| R[REPAIR from proposed geometry]
+    R --> E
+    F -->|Invalid output or repair unavailable| S
+    U[Uploaded radiograph] --> V[Configured image inference]
+    V --> H[Mandatory human review]
+    K --> T[Measurement and execution record]
+    S --> T
+    H --> T
+```
+
+Registered-case analysis and uploaded-image inference are distinct paths.
+An optional LLM selects protocols and tools; it does not directly invent measured
+angles or grant itself new tool permissions.
+
+| Engineering decision | Implementation |
+| --- | --- |
+| Constrain tool selection | Protocol registry and validation of planner JSON; unsupported plans stop |
+| Make correction explicit | KEEP / REPAIR / STOP controller, repair budgets, and independent-proposal checks |
+| Preserve review decisions | Uploaded predictions require review; approvals, rejections, and corrected angles are recorded |
+| Trace execution | Per-tool records, persisted jobs, worker leases, and replay lineage |
+| Expose measurement tools | CLI, FastAPI dashboard, job API, and MCP |
+
+[Source map and execution paths](docs/ARCHITECTURE.md)
+
+## Evaluation
+
+Historical selective-repair study on **176 archived cases**, with three saved
+base-model predictions per case (**528 case-records**):
+
+| Measure | Result |
+| --- | ---: |
+| Case-records selected for intervention | 106/528 (20.1%) |
+| Mean angular error, before → after | 2.678° → 2.540° |
+| Mean error reduction among intervened records | 0.69° |
+
+These results evaluate an archived learned selection policy, not the default
+runtime controller or fresh end-to-end image inference. The mean is over case-level
+HVA/IMA errors. [Protocol, aggregate provenance, and failure analysis](docs/EVALUATION.md#historical-selective-repair-study)
+keep this study separate from software checks and live-model evaluation.
 
 ## Quick start
 
-Requires Python 3.10 or newer.
+Requires Python 3.10+:
 
 ```bash
 git clone https://github.com/jianghongcheng/radmeasure-agent.git
@@ -38,51 +84,23 @@ pip install -e .
 radmeasure --question "Measure HVA and IMA"
 ```
 
-The command returns a JSON task record containing measurements, verification
-results, and an execution trace. In the bundled synthetic example, the reported
-measurements are **HVA 15.0°** and **IMA 8.0°**, and the task completes.
-
-This demo runs without model weights or network access. It uses fabricated
-geometry and placeholder evidence to demonstrate the workflow.
-
-For the local web interface and optional model setup, see [Usage](docs/USAGE.md).
-Live image inference requires compatible weights and separately provisioned
-service artifacts, which are not included in this repository.
-
-## How it works
-
-```text
-Request → protocol selection → measurement → verification
-                                              ├─ keep result
-                                              ├─ eligible repair → verify again
-                                              └─ stop for review
-```
-
-The planner selects the measurement procedure; measurement tools produce the
-angles. Registered-case analysis checks the resulting geometry and output
-contract. Uploaded images follow a model-inference path and always require
-human review, including after a proposed correction.
-
-See [Architecture](docs/ARCHITECTURE.md) for the source map and execution details.
-
-## Development
+The synthetic example returns HVA **15.0°**, IMA **8.0°**, verification results,
+and a tool trace. To enable a local LLM planner or image inference, follow
+[model setup](docs/USAGE.md#optional-llm-planner).
 
 ```bash
 pip install -e '.[dev]'
 python -m pytest -q
-python -m compileall -q src
+python scripts/evaluate_agent_decisions.py
 ```
 
-See [Evaluation](docs/EVALUATION.md) for reproducible checks and artifact
-requirements, and [Contributing](CONTRIBUTING.md) for development guidelines.
+**Stack:** Python, PyTorch image adapters, FastAPI, SQLite, MCP, Docker, GitHub Actions.
 
 ## Research use
 
-RadMeasure is a research prototype, not a medical device, and is not validated
-for diagnosis or patient care. Geometric consistency alone does not establish
-anatomical correctness. Use synthetic or appropriately authorized research data;
-do not upload patient information to the demo. See the [data policy](data/README.md).
+Research prototype, not validated for diagnosis or patient care. Geometry checks
+do not establish anatomical correctness. Use synthetic or authorized research
+data; do not upload patient information to the demo. Weights and private
+per-image artifacts are not distributed. [Data policy](data/README.md).
 
-## License
-
-[MIT](LICENSE).
+[Usage](docs/USAGE.md) · [Evaluation](docs/EVALUATION.md) · [Contributing](CONTRIBUTING.md) · [MIT license](LICENSE)

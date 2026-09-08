@@ -9,7 +9,7 @@ from .inference_client import InferenceClient
 from .agent_controller import MeasurementAgentController
 from .planner import ConstrainedMeasurementPlanner, planner_from_env
 from .protocols import ProtocolRegistry
-from .tools import GeoMedTools
+from .tools import RadMeasureTools
 from .execution_record import ExecutionRecord
 from .measurement_contract import MeasurementContract
 
@@ -23,7 +23,7 @@ class PipelineOutcome:
 class JobPipeline:
     """Registered radiographic measurement and uploaded-image review only."""
 
-    def __init__(self, tools: GeoMedTools,
+    def __init__(self, tools: RadMeasureTools,
                  inference_client: InferenceClient | None = None,
                  planner: ConstrainedMeasurementPlanner | None = None,
                  controller: MeasurementAgentController | None = None) -> None:
@@ -152,7 +152,7 @@ class JobPipeline:
                     "routing": {"decision": "STOP", "reason": initial_errors[0]},
                     "model": prediction.get("model"), "trace_id": job.payload.get("_trace_id"),
                 })
-            repair_model_id = os.environ.get("GEOMED_REPAIR_MODEL_ID", "").strip()
+            repair_model_id = os.environ.get("RADMEASURE_REPAIR_MODEL_ID", "").strip()
             if repair_model_id:
                 candidate = self.inference_client.predict_artifact(
                     image_id=artifact["sha256"], artifact_uri=artifact["path"],

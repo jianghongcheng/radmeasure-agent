@@ -1,5 +1,5 @@
-from geomed_copilot.models import Evidence
-from geomed_copilot.retrieval import CaseRetriever, HybridRetriever
+from radmeasure.models import Evidence
+from radmeasure.retrieval import CaseRetriever, HybridRetriever
 
 
 def test_hybrid_retriever_returns_relevant_measurement_document_first():

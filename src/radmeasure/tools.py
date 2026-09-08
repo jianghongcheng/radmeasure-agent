@@ -5,7 +5,7 @@ from typing import Any
 from .production import DemoService, EvaluationReplayService, LockedArtifactService
 
 
-class GeoMedTools:
+class RadMeasureTools:
     """Typed application boundary shared by HTTP, MCP, and local evaluation.
 
     The current backend replays hash-locked predictions. Keeping this boundary
@@ -45,7 +45,7 @@ class GeoMedTools:
                 "deterministic_executor": True,
             },
             "tools": [
-                "list_geomed_capabilities",
+                "list_radmeasure_capabilities",
                 "analyze_radiograph",
                 "list_available_cases",
             ],

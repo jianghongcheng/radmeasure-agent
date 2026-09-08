@@ -1,8 +1,8 @@
 from pathlib import Path
 import sqlite3
 
-from geomed_copilot.jobs import SqliteJobRepository
-from geomed_copilot.replay import build_replay_payload, replay_guarantee
+from radmeasure.jobs import SqliteJobRepository
+from radmeasure.replay import build_replay_payload, replay_guarantee
 
 
 def test_submit_is_idempotent_and_claim_is_atomic(tmp_path: Path):

@@ -7,10 +7,10 @@ import statistics
 import time
 from pathlib import Path
 
-from geomed_copilot.planner import (
+from radmeasure.planner import (
     ConstrainedMeasurementPlanner, MeasurementPlan, OllamaPlannerModel,
 )
-from geomed_copilot.protocols import ProtocolRegistry
+from radmeasure.protocols import ProtocolRegistry
 
 
 def expected_tools(registry, protocols):

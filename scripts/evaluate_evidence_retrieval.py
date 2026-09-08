@@ -5,16 +5,16 @@ import argparse
 import json
 from pathlib import Path
 
-from geomed_copilot.evidence import load_evidence_catalog
-from geomed_copilot.retrieval import HybridRetriever
+from radmeasure.evidence import load_evidence_catalog
+from radmeasure.retrieval import HybridRetriever
 
 
 GOLDEN = [
     ("How are HVA and IMA reconstructed from anatomical lines?", {"hvangleest-2025-measurement"}),
     ("How many images and annotated feet are in HVAngleEst?", {"hvangleest-2025-data"}),
-    ("Is the GeoMed result live inference or an artifact replay?", {"geomed-artifact-audit"}),
+    ("Is the RadMeasure result live inference or an artifact replay?", {"geomed-artifact-audit"}),
     ("Which benchmark evaluates Cobb angle on spine radiographs?", {"aasce-2019-challenge"}),
-    ("What patient split is used to audit the GeoMed predictions?", {"geomed-artifact-audit"}),
+    ("What patient split is used to audit the RadMeasure predictions?", {"geomed-artifact-audit"}),
 ]
 
 

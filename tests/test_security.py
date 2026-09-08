@@ -1,4 +1,4 @@
-from geomed_copilot.security import ApiKeyAuthorizer, Principal
+from radmeasure.security import ApiKeyAuthorizer, Principal
 
 
 def test_api_key_roles_enforce_minimum_permission():

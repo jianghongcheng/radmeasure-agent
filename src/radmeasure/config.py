@@ -15,10 +15,10 @@ class LockedArtifactConfig:
     @classmethod
     def from_env(cls) -> "LockedArtifactConfig":
         names = {
-            "predictions": "GEOMED_PREDICTIONS",
-            "annotations": "GEOMED_ANNOTATIONS",
-            "split_manifest": "GEOMED_SPLIT_MANIFEST",
-            "evidence_catalog": "GEOMED_EVIDENCE_CATALOG",
+            "predictions": "RADMEASURE_PREDICTIONS",
+            "annotations": "RADMEASURE_ANNOTATIONS",
+            "split_manifest": "RADMEASURE_SPLIT_MANIFEST",
+            "evidence_catalog": "RADMEASURE_EVIDENCE_CATALOG",
         }
         missing = [env for env in names.values() if not os.environ.get(env)]
         if missing:

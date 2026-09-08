@@ -35,26 +35,26 @@ class HttpMetrics:
 
     def render(self, job_counts: dict[str, int]) -> str:
         lines = [
-            "# HELP geomed_http_requests_total HTTP requests by method, normalized path, and status.",
-            "# TYPE geomed_http_requests_total counter",
+            "# HELP radmeasure_http_requests_total HTTP requests by method, normalized path, and status.",
+            "# TYPE radmeasure_http_requests_total counter",
         ]
         with self._lock:
             for key, count in sorted(self._requests.items()):
                 labels = self._labels(key)
-                lines.append(f"geomed_http_requests_total{{{labels}}} {count}")
+                lines.append(f"radmeasure_http_requests_total{{{labels}}} {count}")
             lines += [
-                "# HELP geomed_http_request_duration_seconds HTTP request latency.",
-                "# TYPE geomed_http_request_duration_seconds histogram",
+                "# HELP radmeasure_http_request_duration_seconds HTTP request latency.",
+                "# TYPE radmeasure_http_request_duration_seconds histogram",
             ]
             for key, values in sorted(self._durations.items()):
                 labels = self._labels(key)
                 for bucket in self.BUCKETS:
                     count = sum(value <= bucket for value in values)
-                    lines.append(f'geomed_http_request_duration_seconds_bucket{{{labels},le="{bucket}"}} {count}')
-                lines.append(f'geomed_http_request_duration_seconds_bucket{{{labels},le="+Inf"}} {len(values)}')
-                lines.append(f"geomed_http_request_duration_seconds_sum{{{labels}}} {sum(values)}")
-                lines.append(f"geomed_http_request_duration_seconds_count{{{labels}}} {len(values)}")
-        lines += ["# HELP geomed_jobs Jobs by current status.", "# TYPE geomed_jobs gauge"]
+                    lines.append(f'radmeasure_http_request_duration_seconds_bucket{{{labels},le="{bucket}"}} {count}')
+                lines.append(f'radmeasure_http_request_duration_seconds_bucket{{{labels},le="+Inf"}} {len(values)}')
+                lines.append(f"radmeasure_http_request_duration_seconds_sum{{{labels}}} {sum(values)}")
+                lines.append(f"radmeasure_http_request_duration_seconds_count{{{labels}}} {len(values)}")
+        lines += ["# HELP radmeasure_jobs Jobs by current status.", "# TYPE radmeasure_jobs gauge"]
         for status, count in sorted(job_counts.items()):
-            lines.append(f'geomed_jobs{{status="{status}"}} {count}')
+            lines.append(f'radmeasure_jobs{{status="{status}"}} {count}')
         return "\n".join(lines) + "\n"

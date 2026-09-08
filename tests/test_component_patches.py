@@ -1,6 +1,6 @@
 import torch
 
-from geomed_copilot.component_patches import (
+from radmeasure.component_patches import (
     directions_in_normalized_frame,
     extract_component_patches,
 )

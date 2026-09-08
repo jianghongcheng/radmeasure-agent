@@ -7,7 +7,7 @@ window.config = {
     namespace: '@ohif/extension-default.dataSourcesModule.dicomweb',
     sourceName: 'orthanc',
     configuration: {
-      friendlyName: 'GeoMed Research Orthanc',
+      friendlyName: 'RadMeasure Research Orthanc',
       name: 'orthanc',
       wadoUriRoot: 'http://localhost:8042/wado',
       qidoRoot: 'http://localhost:8042/dicom-web',
@@ -20,7 +20,7 @@ window.config = {
       supportsFuzzyMatching: true,
       supportsWildcard: true,
       omitQuotationForMultipartRequest: true,
-      requestOptions: { auth: 'geomed:geomed-local', credentials: 'include' },
+      requestOptions: { auth: 'radmeasure:radmeasure-local', credentials: 'include' },
     },
   }],
   defaultDataSourceName: 'orthanc',

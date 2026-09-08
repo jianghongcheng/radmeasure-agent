@@ -2,7 +2,7 @@ import csv
 import json
 from pathlib import Path
 
-from geomed_copilot.data import load_manifest
+from radmeasure.data import load_manifest
 
 
 def _row(patient, filename, side="left"):

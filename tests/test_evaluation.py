@@ -1,4 +1,4 @@
-from geomed_copilot.smoke_eval import run_smoke_eval
+from radmeasure.smoke_eval import run_smoke_eval
 
 
 def test_smoke_evaluation_exercises_metrics_without_claiming_benchmark_status():

@@ -2,14 +2,14 @@ from pathlib import Path
 
 import pytest
 
-from geomed_copilot.production import EvaluationReplayService
-from geomed_copilot.tools import GeoMedTools
+from radmeasure.production import EvaluationReplayService
+from radmeasure.tools import RadMeasureTools
 
 
-def _tools() -> GeoMedTools:
+def _tools() -> RadMeasureTools:
     root = Path(__file__).parents[1] / "data"
     processed = root / "processed" / "hvangleest"
-    return GeoMedTools(EvaluationReplayService(
+    return RadMeasureTools(EvaluationReplayService(
         processed / "medimageinsight_locked_test_eval.json",
         processed,
         processed / "train.jsonl",

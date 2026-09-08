@@ -17,8 +17,8 @@
   },
   {
     "evidence_id": "geomed-artifact-audit",
-    "title": "GeoMed locked prediction artifact audit",
-    "text": "GeoMed Copilot replays a hash-verified three-seed MedImageInsight spatial-line prediction artifact on a locked patient-disjoint unilateral test set. The replay is distinguished explicitly from live encoder inference and from annotation-geometry reconstruction.",
+    "title": "RadMeasure locked prediction artifact audit",
+    "text": "RadMeasure Copilot replays a hash-verified three-seed MedImageInsight spatial-line prediction artifact on a locked patient-disjoint unilateral test set. The replay is distinguished explicitly from live encoder inference and from annotation-geometry reconstruction.",
     "source_url": "local://data/processed/hvangleest/medimageinsight_locked_test_eval.json",
     "evidence_type": "system_audit",
     "metadata": {"topic": "evaluation", "measurement": "HVA IMA", "year": "2026"}

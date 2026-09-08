@@ -1,7 +1,7 @@
 import pytest
 
-from geomed_copilot.geometry import acute_angle_degrees, verify_measurement
-from geomed_copilot.models import Line, Point
+from radmeasure.geometry import acute_angle_degrees, verify_measurement
+from radmeasure.models import Line, Point
 
 
 def test_acute_angle_is_orientation_invariant():

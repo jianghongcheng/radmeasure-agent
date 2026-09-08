@@ -3,15 +3,15 @@ from dataclasses import replace
 
 import pytest
 
-from geomed_copilot.agent_controller import MeasurementAgentController
-from geomed_copilot.jobs import SqliteJobRepository
-from geomed_copilot.pipeline import JobPipeline
-from geomed_copilot.planner import ConstrainedMeasurementPlanner
-from geomed_copilot.production import DemoService
-from geomed_copilot.protocols import ProtocolRegistry, DEFAULT_PROTOCOLS
-from geomed_copilot.replay import build_replay_payload
-from geomed_copilot.tools import GeoMedTools
-from geomed_copilot.worker import Worker
+from radmeasure.agent_controller import MeasurementAgentController
+from radmeasure.jobs import SqliteJobRepository
+from radmeasure.pipeline import JobPipeline
+from radmeasure.planner import ConstrainedMeasurementPlanner
+from radmeasure.production import DemoService
+from radmeasure.protocols import ProtocolRegistry, DEFAULT_PROTOCOLS
+from radmeasure.replay import build_replay_payload
+from radmeasure.tools import RadMeasureTools
+from radmeasure.worker import Worker
 
 
 def test_missing_requested_measurement_cannot_complete():
@@ -48,7 +48,7 @@ def test_measurement_contract_rejects_corrupt_evidence(corruption, reason):
 def test_medical_record_persists_and_replay_checks_contract(tmp_path):
     repository = SqliteJobRepository(tmp_path / "jobs.db")
     job, _ = repository.submit("evaluation_analysis", {"image_id": "demo-foot-001"}, "first")
-    tools = GeoMedTools(DemoService())
+    tools = RadMeasureTools(DemoService())
     Worker(repository, JobPipeline(tools)).run_once()
     original = repository.get(job.job_id)
     record = original.result["execution_record"]
@@ -93,7 +93,7 @@ def test_live_invalid_numbers_are_reviewable_and_json_safe(tmp_path):
     repository = SqliteJobRepository(tmp_path / "jobs.db")
     job, _ = repository.submit("uploaded_radiograph", {
         "artifact": {"sha256": "abc", "path": "s3://test/image"}}, "invalid")
-    Worker(repository, JobPipeline(GeoMedTools(DemoService()), Client())).run_once()
+    Worker(repository, JobPipeline(RadMeasureTools(DemoService()), Client())).run_once()
     reviewed = repository.get(job.job_id)
     assert reviewed.status == "needs_review"
     assert reviewed.result["routing"]["reason"] == "invalid_measurement_numbers"
@@ -101,7 +101,7 @@ def test_live_invalid_numbers_are_reviewable_and_json_safe(tmp_path):
 
 
 def test_valid_live_repair_still_requires_review(tmp_path, monkeypatch):
-    monkeypatch.delenv("GEOMED_REPAIR_MODEL_ID", raising=False)
+    monkeypatch.delenv("RADMEASURE_REPAIR_MODEL_ID", raising=False)
 
     class Client:
         def predict_artifact(self, **kwargs):
@@ -113,7 +113,7 @@ def test_valid_live_repair_still_requires_review(tmp_path, monkeypatch):
     repository = SqliteJobRepository(tmp_path / "jobs.db")
     job, _ = repository.submit("uploaded_radiograph", {
         "artifact": {"sha256": "abc", "path": "s3://test/image"}}, "repair")
-    Worker(repository, JobPipeline(GeoMedTools(DemoService()), Client())).run_once()
+    Worker(repository, JobPipeline(RadMeasureTools(DemoService()), Client())).run_once()
     reviewed = repository.get(job.job_id)
     assert reviewed.status == "needs_review"
     record = reviewed.result["execution_record"]

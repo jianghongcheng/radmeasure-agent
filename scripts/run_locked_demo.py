@@ -5,7 +5,7 @@ import argparse
 import json
 from pathlib import Path
 
-from geomed_copilot.production import LockedArtifactService
+from radmeasure.production import LockedArtifactService
 
 
 def main() -> None:

@@ -1,0 +1,21 @@
+{
+  "study": "Historical learned selective repair, fixed 20% coverage budget",
+  "method": "learned_expected_gain",
+  "source_file": "selector_baselines_fixed20.json",
+  "source_sha256": "c10d95d46c8d4372bb7b4a3481a785c99dc83e0eff6b3184e9cf246170b6c6e5",
+  "folds": 5,
+  "split_seed": 2027,
+  "coverage_budget": 0.2,
+  "case_records": 528,
+  "unique_case_identifiers": 176,
+  "records_per_identifier": [
+    3
+  ],
+  "intervened_records": 106,
+  "intervention_rate": 0.20075757575757575,
+  "mean_error_before_deg": 2.6777050201639985,
+  "mean_error_after_deg": 2.5396855900233444,
+  "mean_improvement_intervened_deg": 0.6874930105119381,
+  "records_with_increased_error": 43,
+  "records_with_error_increase_over_half_degree": 32
+}

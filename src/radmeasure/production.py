@@ -6,7 +6,7 @@ from pathlib import Path
 from .artifact_predictor import FrozenPredictionArtifact, sha256_file
 from .evidence import load_evidence_catalog
 from .models import CopilotRequest, Line, Point
-from .orchestrator import GeoMedCopilot
+from .orchestrator import RadMeasureOrchestrator
 from .real_cases import cases_from_locked_split, cases_from_manifest
 from .retrieval import CaseRetriever, HybridRetriever
 from .sample_data import CASES, DEMO_LANDMARKS, EVIDENCE
@@ -20,7 +20,7 @@ class LockedArtifactService:
         self.predictor = FrozenPredictionArtifact(predictions)
         evidence = load_evidence_catalog(evidence_catalog)
         cases = cases_from_locked_split(annotations, split_manifest, "train")
-        self.copilot = GeoMedCopilot(HybridRetriever(evidence), CaseRetriever(cases))
+        self.copilot = RadMeasureOrchestrator(HybridRetriever(evidence), CaseRetriever(cases))
 
     def analyze(self, image_id: str, question: str, top_k: int = 3) -> dict:
         predicted = self.predictor.predict(image_id)
@@ -48,7 +48,7 @@ class DemoService:
     identifiers = {"demo-foot-001"}
 
     def __init__(self) -> None:
-        self.copilot = GeoMedCopilot(HybridRetriever(EVIDENCE), CaseRetriever(CASES))
+        self.copilot = RadMeasureOrchestrator(HybridRetriever(EVIDENCE), CaseRetriever(CASES))
 
     def analyze(self, image_id: str, question: str, top_k: int = 3) -> dict:
         if image_id not in self.identifiers:
@@ -106,7 +106,7 @@ class EvaluationReplayService:
         evidence = load_evidence_catalog(evidence_catalog)
         query_ids = {record["sample_id"] for record in self._records.values()}
         cases = [case for case in cases_from_manifest(train_manifest) if case.evidence_id not in query_ids]
-        self.copilot = GeoMedCopilot(HybridRetriever(evidence), CaseRetriever(cases))
+        self.copilot = RadMeasureOrchestrator(HybridRetriever(evidence), CaseRetriever(cases))
 
     @staticmethod
     def _line(values: list[float], width: int, height: int) -> Line:

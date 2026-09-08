@@ -1,4 +1,4 @@
-"""Small dependency-free MCP stdio server for the GeoMed tool boundary."""
+"""Small dependency-free MCP stdio server for the RadMeasure tool boundary."""
 
 from __future__ import annotations
 
@@ -8,18 +8,18 @@ from functools import lru_cache
 from typing import Any
 
 from .factory import create_tools_from_env
-from .tools import GeoMedTools
+from .tools import RadMeasureTools
 
 PROTOCOL_VERSION = "2024-11-05"
 
 
 @lru_cache(maxsize=1)
-def get_tools() -> GeoMedTools:
+def get_tools() -> RadMeasureTools:
     return create_tools_from_env()
 
 
 TOOL_SCHEMAS = [
-    {"name": "list_geomed_capabilities", "description": "Describe the GeoMed backend, measurements, and limitations.", "inputSchema": {"type": "object", "properties": {}, "additionalProperties": False}},
+    {"name": "list_radmeasure_capabilities", "description": "Describe the RadMeasure backend, measurements, and limitations.", "inputSchema": {"type": "object", "properties": {}, "additionalProperties": False}},
     {"name": "list_available_cases", "description": "List case identifiers accepted by the configured backend.", "inputSchema": {"type": "object", "properties": {"limit": {"type": "integer", "minimum": 1, "maximum": 100, "default": 20}}, "additionalProperties": False}},
     {
         "name": "analyze_radiograph",
@@ -55,7 +55,7 @@ def dispatch(message: dict) -> dict | None:
     params = message.get("params") or {}
     try:
         if method == "initialize":
-            return _result(request_id, {"protocolVersion": PROTOCOL_VERSION, "capabilities": {"tools": {"listChanged": False}}, "serverInfo": {"name": "geomed-copilot", "version": "0.3.0"}})
+            return _result(request_id, {"protocolVersion": PROTOCOL_VERSION, "capabilities": {"tools": {"listChanged": False}}, "serverInfo": {"name": "radmeasure", "version": "0.5.0"}})
         if method == "ping":
             return _result(request_id, {})
         if method == "tools/list":
@@ -63,7 +63,7 @@ def dispatch(message: dict) -> dict | None:
         if method == "tools/call":
             name = params.get("name")
             arguments = params.get("arguments") or {}
-            if name == "list_geomed_capabilities":
+            if name == "list_radmeasure_capabilities":
                 output = get_tools().capabilities()
             elif name == "list_available_cases":
                 output = get_tools().list_available_cases(**arguments)

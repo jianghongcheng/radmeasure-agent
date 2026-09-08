@@ -3,7 +3,7 @@ import io
 import numpy as np
 from PIL import Image
 
-from geomed_copilot.imaging import decode_medical_image
+from radmeasure.imaging import decode_medical_image
 
 
 def _png(array):

@@ -1,16 +1,16 @@
 import json
 
 from test_trace_api import request
-from geomed_copilot.api import create_app
-from geomed_copilot.dashboard import render_dashboard
+from radmeasure.api import create_app
+from radmeasure.dashboard import render_dashboard
 
 
 def test_api_rejects_sql_payload(tmp_path, monkeypatch):
-    monkeypatch.setenv("GEOMED_DEMO_MODE", "1")
-    monkeypatch.delenv("GEOMED_EVAL_REPLAY", raising=False)
-    monkeypatch.setenv("GEOMED_JOB_DB", str(tmp_path / "jobs.sqlite"))
-    monkeypatch.setenv("GEOMED_ARTIFACT_ROOT", str(tmp_path / "artifacts"))
-    monkeypatch.setenv("GEOMED_API_KEYS", json.dumps({
+    monkeypatch.setenv("RADMEASURE_DEMO_MODE", "1")
+    monkeypatch.delenv("RADMEASURE_EVAL_REPLAY", raising=False)
+    monkeypatch.setenv("RADMEASURE_JOB_DB", str(tmp_path / "jobs.sqlite"))
+    monkeypatch.setenv("RADMEASURE_ARTIFACT_ROOT", str(tmp_path / "artifacts"))
+    monkeypatch.setenv("RADMEASURE_API_KEYS", json.dumps({
         "operator": {"name": "test", "role": "operator"},
     }))
     app = create_app()

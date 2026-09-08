@@ -8,8 +8,8 @@ import json
 import math
 import statistics
 
-from geomed_copilot.production import DemoService
-from geomed_copilot.tools import GeoMedTools
+from radmeasure.production import DemoService
+from radmeasure.tools import RadMeasureTools
 
 
 def percentile(values: list[float], fraction: float) -> float:
@@ -21,7 +21,7 @@ def percentile(values: list[float], fraction: float) -> float:
 def run(iterations: int) -> dict:
     if iterations < 1:
         raise ValueError("iterations must be positive")
-    tools = GeoMedTools(DemoService())
+    tools = RadMeasureTools(DemoService())
     results = [tools.analyze_radiograph("demo-foot-001", top_k=2) for _ in range(iterations)]
     latencies = [item["total_latency_ms"] for item in results]
     traces = [trace for item in results for trace in item["traces"]]

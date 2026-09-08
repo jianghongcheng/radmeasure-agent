@@ -6,17 +6,17 @@ from .models import Evidence, Line, Point
 EVIDENCE = [
     Evidence(
         "guideline-hva",
-        "Hallux valgus radiographic measurement guidance",
+        "Synthetic HVA measurement note",
         "HVA is measured between the first metatarsal and proximal phalanx axes. "
-        "Measurements should be checked against landmark quality and acquisition conditions.",
+        "Synthetic demonstration text, not a clinical guideline or citation.",
         "https://example.org/guideline-hva",
         metadata={"measurement": "HVA"},
     ),
     Evidence(
         "method-geomed",
-        "GeoMed relational geometry tokenization",
+        "Synthetic geometry verification note",
         "Predicted anatomical geometry can be represented explicitly and compared with "
-        "analytical angle reconstruction to expose disagreement and support auditing.",
+        "analytical angle reconstruction. Synthetic demonstration text, not a published source.",
         "https://example.org/geomed",
         metadata={"measurement": "HVA"},
     ),
@@ -25,16 +25,16 @@ EVIDENCE = [
 CASES = [
     Evidence(
         "case-001",
-        "Reference HVA case 001",
-        "De-identified public benchmark case with verified measurements.",
+        "Synthetic HVA case 001",
+        "Fabricated case for software demonstration; not a patient or benchmark record.",
         "https://example.org/cases/001",
         "case",
         {"measurements": {"HVA": 15.0, "IMA": 8.0}},
     ),
     Evidence(
         "case-002",
-        "Reference HVA case 002",
-        "De-identified public benchmark case with verified measurements.",
+        "Synthetic HVA case 002",
+        "Fabricated case for software demonstration; not a patient or benchmark record.",
         "https://example.org/cases/002",
         "case",
         {"measurements": {"HVA": 30.0, "IMA": 14.0}},

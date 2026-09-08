@@ -7,8 +7,8 @@ import math
 import statistics
 from pathlib import Path
 
-from geomed_copilot.geometry import acute_angle_degrees
-from geomed_copilot.models import Line, Point
+from radmeasure.geometry import acute_angle_degrees
+from radmeasure.models import Line, Point
 
 
 def percentile(values: list[float], q: float) -> float:

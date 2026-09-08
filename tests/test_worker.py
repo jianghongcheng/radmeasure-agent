@@ -1,10 +1,10 @@
 from pathlib import Path
 
-from geomed_copilot.jobs import SqliteJobRepository
-from geomed_copilot.pipeline import JobPipeline
-from geomed_copilot.production import DemoService
-from geomed_copilot.tools import GeoMedTools
-from geomed_copilot.worker import Worker
+from radmeasure.jobs import SqliteJobRepository
+from radmeasure.pipeline import JobPipeline
+from radmeasure.production import DemoService
+from radmeasure.tools import RadMeasureTools
+from radmeasure.worker import Worker
 
 
 def test_worker_completes_verified_evaluation_job(tmp_path: Path):
@@ -12,7 +12,7 @@ def test_worker_completes_verified_evaluation_job(tmp_path: Path):
     job, _ = repository.submit(
         "evaluation_analysis", {"image_id": "demo-foot-001", "top_k": 2}, "work-key"
     )
-    worker = Worker(repository, JobPipeline(GeoMedTools(DemoService())))
+    worker = Worker(repository, JobPipeline(RadMeasureTools(DemoService())))
     assert worker.run_once() is True
     completed = repository.get(job.job_id)
     assert completed.status == "completed"
@@ -27,7 +27,7 @@ def test_uploaded_job_routes_to_human_review_without_fake_inference(tmp_path: Pa
     job, _ = repository.submit(
         "uploaded_radiograph", {"artifact": {"sha256": "abc"}}, "upload-key"
     )
-    Worker(repository, JobPipeline(GeoMedTools(DemoService()))).run_once()
+    Worker(repository, JobPipeline(RadMeasureTools(DemoService()))).run_once()
     reviewed = repository.get(job.job_id)
     assert reviewed.status == "needs_review"
     assert reviewed.result["routing"]["reason"] == "live_inference_adapter_unavailable"
@@ -50,7 +50,7 @@ def test_uploaded_job_runs_live_model_and_preserves_review_gate(tmp_path: Path):
     job, _ = repository.submit("uploaded_radiograph", {
         "artifact": {"sha256": "abc", "path": "s3://bucket/key.jpg"}
     }, "live-upload-key")
-    pipeline = JobPipeline(GeoMedTools(DemoService()), FakeLiveClient())
+    pipeline = JobPipeline(RadMeasureTools(DemoService()), FakeLiveClient())
     Worker(repository, pipeline).run_once()
     reviewed = repository.get(job.job_id)
     assert reviewed.status == "needs_review"
@@ -60,7 +60,7 @@ def test_uploaded_job_runs_live_model_and_preserves_review_gate(tmp_path: Path):
 
 
 def test_uploaded_job_rejects_independent_repair_on_cross_model_disagreement(tmp_path: Path, monkeypatch):
-    monkeypatch.setenv("GEOMED_REPAIR_MODEL_ID", "hvangle-hrnet-repair")
+    monkeypatch.setenv("RADMEASURE_REPAIR_MODEL_ID", "hvangle-hrnet-repair")
 
     class FakeTwoModelClient:
         def predict_artifact(self, image_id, artifact_uri, media_type="image/jpeg", model_id=None):
@@ -85,7 +85,7 @@ def test_uploaded_job_rejects_independent_repair_on_cross_model_disagreement(tmp
     job, _ = repository.submit("uploaded_radiograph", {
         "artifact": {"sha256": "abc", "path": "s3://bucket/key.jpg"}
     }, "independent-repair-key")
-    Worker(repository, JobPipeline(GeoMedTools(DemoService()), FakeTwoModelClient())).run_once()
+    Worker(repository, JobPipeline(RadMeasureTools(DemoService()), FakeTwoModelClient())).run_once()
     reviewed = repository.get(job.job_id)
     assert reviewed.status == "needs_review"
     assert reviewed.result["routing"]["reason"] == "cross_model_disagreement"

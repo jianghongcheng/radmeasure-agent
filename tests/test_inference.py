@@ -3,8 +3,8 @@ from pathlib import Path
 
 import pytest
 
-from geomed_copilot.inference import LockedEvaluationAdapter, ModelRegistry
-from geomed_copilot.inference_client import InferenceClient, InferenceUnavailable
+from radmeasure.inference import LockedEvaluationAdapter, ModelRegistry
+from radmeasure.inference_client import InferenceClient, InferenceUnavailable
 
 
 def test_locked_adapter_exposes_version_hash_and_honest_capabilities():

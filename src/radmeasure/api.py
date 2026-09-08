@@ -25,7 +25,7 @@ def create_app():
         raise RuntimeError("Install the API extra: pip install -e '.[api]'") from exc
 
     configure_json_logging()
-    logger = logging.getLogger("geomed.api")
+    logger = logging.getLogger("radmeasure.api")
     tools = create_tools_from_env()
     jobs = job_repository_from_env()
     artifacts = artifact_store_from_env()
@@ -65,12 +65,12 @@ def create_app():
     def fetch_orthanc_instance(instance_id: str) -> bytes:
         if not instance_id or any(ch not in "0123456789abcdefABCDEF-" for ch in instance_id):
             raise ValueError("invalid Orthanc instance ID")
-        base = os.environ.get("GEOMED_ORTHANC_URL")
+        base = os.environ.get("RADMEASURE_ORTHANC_URL")
         if not base:
             raise RuntimeError("Orthanc integration is not configured")
         request = urllib.request.Request(base.rstrip("/") + f"/instances/{instance_id}/file")
-        user = os.environ.get("GEOMED_ORTHANC_USERNAME", "")
-        password = os.environ.get("GEOMED_ORTHANC_PASSWORD", "")
+        user = os.environ.get("RADMEASURE_ORTHANC_USERNAME", "")
+        password = os.environ.get("RADMEASURE_ORTHANC_PASSWORD", "")
         if user:
             token = base64.b64encode(f"{user}:{password}".encode()).decode()
             request.add_header("Authorization", f"Basic {token}")
@@ -85,7 +85,7 @@ def create_app():
 
     app = FastAPI(
         title="RadMeasure API",
-        version="0.4.0",
+        version="0.5.0",
         description="Medical imaging measurement agent for registered HVA/IMA protocols and human review",
     )
     cache: dict[str, dict] = {}
@@ -287,7 +287,7 @@ def create_app():
             raise HTTPException(status_code=409, detail="report requires approved human review")
         result = job.result or {}
         return {
-            "schema": "geomed.measurement-report.v1",
+            "schema": "radmeasure.measurement-report.v1",
             "job_id": job.job_id,
             "status": "final",
             "measurements": result.get("measurements", {}),

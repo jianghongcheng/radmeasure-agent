@@ -7,14 +7,14 @@ from .planner import ConstrainedMeasurementPlanner
 from .protocols import ProtocolRegistry
 from .pipeline import JobPipeline
 from .production import DemoService
-from .tools import GeoMedTools
-from .orchestrator import GeoMedCopilot
+from .tools import RadMeasureTools
+from .orchestrator import RadMeasureOrchestrator
 from .retrieval import CaseRetriever, HybridRetriever
 from .sample_data import CASES, DEMO_LANDMARKS, EVIDENCE
 
 
-def build_demo() -> GeoMedCopilot:
-    return GeoMedCopilot(HybridRetriever(EVIDENCE), CaseRetriever(CASES))
+def build_demo() -> RadMeasureOrchestrator:
+    return RadMeasureOrchestrator(HybridRetriever(EVIDENCE), CaseRetriever(CASES))
 
 
 def main() -> None:
@@ -32,7 +32,7 @@ def main() -> None:
             "image_id": "demo-foot-001", "question": args.question,
         }, "medical-demo")
         Worker(jobs, JobPipeline(
-            GeoMedTools(DemoService()),
+            RadMeasureTools(DemoService()),
             planner=ConstrainedMeasurementPlanner(ProtocolRegistry()),
         )).run_once()
         print(json.dumps(jobs.get(job.job_id).to_dict(), indent=2, allow_nan=False))
