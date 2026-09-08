@@ -1,8 +1,8 @@
 # Architecture
 
-RadMeasure implements a bounded medical workflow in ordinary Python, not
-LangGraph. A planner selects registered actions; it does not generate unrestricted
-executable code or authoritative clinical measurements.
+RadMeasure implements a bounded medical workflow in Python. A planner selects
+registered actions, measurement tools produce outputs, and the controller
+checks whether to retain, repair, or route a result for review.
 
 ## Source map
 

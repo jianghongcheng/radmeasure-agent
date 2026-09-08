@@ -16,9 +16,8 @@ Demo citations and similar cases are synthetic placeholders, not clinical source
 Test counts depend on optional dependencies and artifacts. Inspect skip reasons
 rather than treating skipped tests as validation.
 
-Tests cover medical-only requests, contract failures, bounded repair, mandatory
-upload review, persistence, and execution lineage. SQL payloads in rejection
-tests are negative inputs, not a supported analysis feature.
+Tests cover unsupported requests, contract failures, bounded repair, mandatory
+upload review, persistence, and execution lineage.
 
 ## Evidence modes
 
@@ -43,6 +42,5 @@ inputs and per-patient outputs out of Git.
 - Unit tests and mocks do not validate a live model or external service stack.
 - Geometry consistency does not establish correct anatomical localization.
 - Human review is a mechanism, not evidence of clinical effectiveness.
-- SQL analysis scores are not RadMeasure medical evidence.
 - No prospective clinical, production-user, or continuous-load SLO evidence is
   demonstrated by these checks.
