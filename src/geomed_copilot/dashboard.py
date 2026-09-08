@@ -2,7 +2,7 @@ from __future__ import annotations
 
 
 def render_dashboard() -> str:
-    """Return a zero-build portfolio UI served by the FastAPI application."""
+    """Return the medical research dashboard served by the FastAPI application."""
     return """<!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>RadMeasure</title><style>
@@ -11,7 +11,7 @@ def render_dashboard() -> str:
 main{max-width:1080px;margin:auto;padding:48px 24px}h1{font-size:clamp(34px,6vw,64px);line-height:1;margin:12px 0}.eyebrow,.metric b{color:var(--cyan);letter-spacing:.08em}.sub{color:var(--muted);max-width:720px}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;margin:28px 0}.card{background:#111d30dd;border:1px solid var(--line);border-radius:14px;padding:18px}.metric b{font-size:26px;display:block}.controls{display:flex;gap:10px;flex-wrap:wrap}input,button{border:1px solid var(--line);border-radius:9px;padding:11px 14px;background:#0b1627;color:var(--ink)}input{flex:1;min-width:240px}button{background:var(--cyan);color:#05201b;font-weight:700;cursor:pointer}pre{white-space:pre-wrap;max-height:520px;overflow:auto;color:#cfe1fa}.tag{display:inline-block;padding:4px 8px;border:1px solid var(--line);border-radius:99px;color:var(--amber)}
 </style></head><body><main>
 <div class="eyebrow">MEDICAL IMAGING MEASUREMENT</div><h1>RadMeasure</h1>
-<p class="sub">Protocol-defined radiographic measurement with deterministic geometry, bounded verification, persisted trajectories, and lineage-aware replay. Research and portfolio demonstration only.</p>
+<p class="sub">Protocol-defined radiographic measurement with deterministic geometry, bounded verification, persisted trajectories, and lineage-aware replay. Research demonstration only; not for clinical use.</p>
 <div class="grid"><div class="card metric"><b>HVA + IMA</b>registered medical protocols</div><div class="card metric"><b>Review required</b>uploaded image results</div><div class="card metric"><b>Research only</b>not for patient care</div><div class="card metric"><b>REST + MCP</b>medical tool interfaces</div></div>
 <section class="card"><span class="tag" id="mode">loading backend…</span><h2>Run auditable workflow</h2><div class="controls"><input id="key" type="password" placeholder="API key" value="operator-local" aria-label="API key"><input id="image" value="demo-foot-001" aria-label="Image ID"><input id="question" value="Measure HVA and IMA with supporting evidence" aria-label="Question"><button id="run">Analyze</button></div><pre id="output">Select Analyze to inspect measurements, citations, provenance, and per-tool latency.</pre></section>
 <section class="card" style="margin-top:14px"><span class="tag">LIVE IMAGE + HUMAN REVIEW</span><h2>Upload and review</h2>

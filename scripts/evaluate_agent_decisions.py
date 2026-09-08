@@ -75,7 +75,7 @@ def main():
         "mean_trajectory_steps": sum(row["trajectory_steps"] for row in rows) / len(rows),
         "replay_consistency": sum(row["replay_consistent"] for row in rows) / len(rows),
     }
-    output = Path("outputs/portfolio/agent_decision_policy_v1.json")
+    output = Path("outputs/evaluation/agent_decision_policy_v1.json")
     output.parent.mkdir(parents=True, exist_ok=True)
     output.write_text(json.dumps({"summary": summary, "cases": rows}, indent=2) + "\n")
     print(json.dumps(summary, indent=2))

@@ -91,7 +91,7 @@ def main():
     parser.add_argument("--cases", type=Path, default=Path("data/benchmarks/protocol_planning_v1.json"))
     parser.add_argument("--base-url", default="http://127.0.0.1:11434")
     parser.add_argument("--model", default="qwen3:8b")
-    parser.add_argument("--output", type=Path, default=Path("outputs/portfolio/planner_baselines_qwen3_8b.json"))
+    parser.add_argument("--output", type=Path, default=Path("outputs/evaluation/planner_baselines_qwen3_8b.json"))
     args = parser.parse_args()
     cases = json.loads(args.cases.read_text())
     registry = ProtocolRegistry()

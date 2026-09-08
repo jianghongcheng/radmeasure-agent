@@ -25,7 +25,7 @@ class GeoMedTools:
         limitations = [
             "Only identifiers exposed by the configured backend are accepted.",
             "No image bytes are processed by the current backend.",
-            "Outputs are for research and portfolio demonstration only.",
+            "Outputs are for research demonstration only; not for clinical use.",
         ]
         if replay and not self.service.split_distribution == {"train": 0, "val": 0, "test": 176}:
             limitations.append(

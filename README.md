@@ -1,29 +1,33 @@
-# RadMeasure — Medical Imaging Measurement Agent
+# RadMeasure
 
-Research prototype for **protocol-defined HVA and IMA radiographic measurement**:
-constrained planning, deterministic geometry checks, bounded repair,
-human review, and persisted execution records.
+A research agent for **protocol-defined radiographic measurement** of hallux
+valgus angle (HVA) and intermetatarsal angle (IMA).
 
-**Not a medical device. Not validated for diagnosis or patient care.**
+RadMeasure separates planning from measurement: a constrained planner selects
+registered protocols, measurement tools produce results, and explicit checks
+route them to completion, bounded repair, or human review. The LLM does not
+directly invent the reported angles.
 
-Analytical SQL is maintained separately in
-[ContractSQL](https://github.com/jianghongcheng/contractsql).
+**Research only. Not a medical device; not validated for diagnosis or patient care.**
 
-## Medical workflow
+## Workflow
 
-Registered request → authorized plan → measurement → contract and geometry
-checks → complete or human review → trace and replay.
+```text
+Request → registered plan → measurement tools → contract / geometry checks
+                                                   ├─ keep
+                                                   ├─ bounded repair → recheck
+                                                   └─ stop / human review
+```
 
-- Registered hallux valgus angle (HVA) and intermetatarsal angle (IMA) protocols.
-- Typed contracts reject missing, duplicate, non-finite, and inconsistent outputs.
-- FastAPI job endpoints, API-key roles, SQLite job storage, and a worker.
-- Uploaded-image inference adapter; uploaded results require human review.
-- MCP medical tools: capabilities, registered cases, and radiograph analysis.
-  Direct MCP analysis is distinct from the durable API job workflow.
-- PostgreSQL, object storage, Orthanc, and OHIF adapters remain available;
-  fresh integration validation of those services is not claimed here.
+- HVA/IMA protocol registry and validated planner output; unsupported plans stop.
+- Deterministic geometry checks and explicit repair limits.
+- Uploaded-image inference adapter with mandatory human review.
+- FastAPI, a local dashboard, durable jobs, API-key roles, and execution records.
+- MCP tools for capabilities, registered cases, and radiograph analysis.
 
-## Offline quick start
+## Run the offline demo
+
+Requires Python 3.10 or newer.
 
 ```bash
 git clone https://github.com/jianghongcheng/radmeasure-agent.git
@@ -34,42 +38,17 @@ pip install -e .
 radmeasure --question "Measure HVA and IMA"
 ```
 
-Runs one **synthetic** case through the medical pipeline, without a model or
-network call. A completed synthetic job is not clinical approval.
+This runs a bundled **synthetic** case without a model or network call. It
+demonstrates software behavior, not image-model accuracy. Live image inference
+requires separately provisioned compatible weights and a model service.
 
-## Local API demo
+## Documentation
 
-Install `pip install -e '.[api]'`. Set the same environment in two terminals:
+- [Usage](docs/USAGE.md): local API demo, model-service prerequisites, and data.
+- [Architecture](docs/ARCHITECTURE.md): source map, checks, and review boundaries.
+- [Evaluation](docs/EVALUATION.md): reproducible checks and evidence limitations.
 
-```bash
-export GEOMED_DEMO_MODE=1
-unset GEOMED_EVAL_REPLAY
-export GEOMED_JOB_DB=/tmp/radmeasure-demo/jobs.sqlite
-export GEOMED_ARTIFACT_ROOT=/tmp/radmeasure-demo/artifacts
-export GEOMED_API_KEYS='{"operator-local":{"name":"local operator","role":"operator"},"reviewer-local":{"name":"local reviewer","role":"admin"},"viewer-local":{"name":"local viewer","role":"viewer"}}'
-```
-
-Run `uvicorn geomed_copilot.api:app --host 127.0.0.1 --port 8766` in one
-terminal and `radmeasure-worker` in the other. Open http://127.0.0.1:8766.
-Example keys are only for loopback demos; replace before deployment.
-
-Live uploads need a separately configured model service and compatible weights.
-See [model serving](docs/MODEL_SERVING.md) and
-[review workflow](docs/DICOM_REVIEW_WORKFLOW.md).
-The existing Compose deployment needs separately provisioned artifacts; it is
-not the offline demo.
-
-## Evidence modes and limitations
-
-| Mode | Input | Evidence |
-| --- | --- | --- |
-| Synthetic demo | Bundled fabricated case | Software control flow and guards |
-| Locked replay | Saved predictions | Reanalysis of historical artifacts |
-| Live inference | Uploaded image + configured model | Actual inference, requiring review |
-
-Do not describe replay as fresh inference or tests as clinical validation.
-Historical medical experiments remain in docs and scripts. SPIDER in these
-research scripts is the spine-imaging dataset, not a SQL benchmark.
+## Development
 
 ```bash
 pip install -e '.[dev]'
@@ -77,12 +56,12 @@ python -m pytest -q
 python -m compileall -q src
 ```
 
-See [release validation](docs/MEDICAL_RELEASE_VALIDATION.md) and
-[evidence boundaries](docs/PORTFOLIO_RESULTS.md).
-No production-user impact, prospective clinical validation, or continuous-load
-SLO has been demonstrated. Geometric consistency is not anatomical correctness.
-Metadata removal is not complete de-identification; do not upload patient data.
-Models and clinical images are not distributed here.
+Models, clinical images, runtime state, and generated experiment outputs are not
+distributed. Do not upload patient information. Metadata stripping is not
+complete de-identification, and geometric consistency is not anatomical validity.
 
-Legacy geomed_copilot imports and command aliases remain for compatibility.
-SQL files were removed from the medical working tree; Git history is preserved.
+This repository is medical-only. Database analysis is a separate project,
+[ContractSQL](https://github.com/jianghongcheng/contractsql), with separate
+runtime behavior and evaluations. SQLite/PostgreSQL here store application jobs;
+they are not analytical query tools. The `geomed_copilot` package name remains
+for compatibility.

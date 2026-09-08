@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Repeat the full demo workflow and emit hiring-relevant reliability metrics."""
+"""Repeat the synthetic medical workflow and report software-check metrics."""
 
 from __future__ import annotations
 
@@ -26,7 +26,7 @@ def run(iterations: int) -> dict:
     latencies = [item["total_latency_ms"] for item in results]
     traces = [trace for item in results for trace in item["traces"]]
     return {
-        "evaluation_type": "deterministic_portfolio_reliability_check_not_clinical_validation",
+        "evaluation_type": "synthetic_medical_workflow_check_not_clinical_validation",
         "runs": iterations,
         "successful_runs": sum(item["status"] == "complete" for item in results),
         "tool_success_rate": sum(trace["ok"] for trace in traces) / len(traces),

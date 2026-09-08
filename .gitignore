@@ -31,3 +31,19 @@ third_party/
 # have been reviewed explicitly.
 data/processed/
 data/local/
+
+# Keep work logs and generated artifacts out of public releases.
+outputs/
+protocols/
+docs/*
+!docs/USAGE.md
+!docs/ARCHITECTURE.md
+!docs/EVALUATION.md
+*.sqlite
+*.sqlite3
+*.db
+*.log
+*.pt
+*.pth
+*.ckpt
+*.safetensors
