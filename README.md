@@ -22,24 +22,7 @@ weights and always requires review. [Run the web interface](docs/USAGE.md#local-
 
 ## Architecture
 
-```mermaid
-flowchart TD
-    A[Measurement request] --> B[Constrained protocol planner]
-    B --> C{Registered action?}
-    C -->|No| S[STOP: record reason]
-    C -->|Yes| D[Run measurement tools]
-    D --> E[Validate outputs and geometry]
-    E --> F{Controller decision}
-    F -->|Checks pass| K[KEEP result]
-    F -->|Eligible independent proposal and budget| R[REPAIR from proposed geometry]
-    R --> E
-    F -->|Invalid output or repair unavailable| S
-    U[Uploaded radiograph] --> V[Configured image inference]
-    V --> H[Mandatory human review]
-    K --> T[Measurement and execution record]
-    S --> T
-    H --> T
-```
+![Agent execution and review workflow](docs/assets/workflow.svg)
 
 Registered-case analysis and uploaded-image inference are distinct paths.
 An optional LLM selects protocols and tools; it does not directly invent measured

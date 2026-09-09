@@ -42,6 +42,7 @@ docs/*
 !docs/assets/
 docs/assets/*
 !docs/assets/dashboard.png
+!docs/assets/workflow.svg
 !docs/results/
 docs/results/*
 !docs/results/selective_repair_summary.json
