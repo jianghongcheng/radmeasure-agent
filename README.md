@@ -1,89 +1,52 @@
+<div align="center">
+
 # RadMeasure
 
-**A medical imaging measurement agent with geometric verification, bounded repair, and human review.**
+**A medical measurement agent with controlled verification and repair.**
 
-[![CI](https://github.com/jianghongcheng/radmeasure-agent/actions/workflows/ci.yml/badge.svg)](https://github.com/jianghongcheng/radmeasure-agent/actions/workflows/ci.yml)
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+HRNet landmarks · Vision-language models · KEEP / REPAIR / STOP
 
-RadMeasure coordinates measurement of **hallux valgus angle (HVA)** and
-**intermetatarsal angle (IMA)** in foot radiographs. A constrained planner selects
-registered protocols; measurement tools produce the angles; a controller checks
-geometry and decides whether to keep, repair, or stop a result.
+![Python](https://img.shields.io/badge/Python-3.10%2B-3776AB?logo=python&logoColor=white)
+![LangGraph](https://img.shields.io/badge/Orchestration-LangGraph-167D7F)
+![FastAPI](https://img.shields.io/badge/API-FastAPI-009688?logo=fastapi&logoColor=white)
+![Status](https://img.shields.io/badge/Status-Research_prototype-64748B)
 
-[Quick start](#quick-start) · [Architecture](#architecture) · [Results](#evaluation) · [Usage](docs/USAGE.md)
+[Overview](#overview) · [Architecture](#architecture) · [Getting Started](#getting-started) · [Documentation](docs/DUAL_PATH_WORKFLOW.md)
 
-## Demo
+</div>
 
-![RadMeasure dashboard showing a synthetic measurement workflow](docs/assets/dashboard.png)
+## Overview
 
-The offline demo runs the planning, measurement, and verification path on synthetic
-geometry without model downloads. Uploaded-image inference uses separately configured
-weights and always requires review. [Run the web interface](docs/USAGE.md#local-api-and-dashboard).
+RadMeasure measures hallux valgus angle (HVA) and intermetatarsal angle (IMA) from foot radiographs. An HRNet landmark model and a vision-language model inspect the image independently; a LangGraph controller checks their agreement and decides whether to accept, recheck, or request human review.
+
+- **Simple web interface** — upload an image and choose GPT, Claude, or Gemini.
+- **Protocol-constrained actions** — model requests are limited to registered definitions and tools.
+- **Bounded repair** — the VLM rechecks the image within an explicit retry budget.
+- **Traceable decisions** — retain estimates, verification reasons, and review history.
 
 ## Architecture
 
-![Agent execution and review workflow](docs/assets/workflow.svg)
+![RadMeasure architecture: parallel landmark and VLM measurements with a KEEP, REPAIR, STOP controller](docs/assets/workflow.svg)
 
-Registered-case analysis and uploaded-image inference are distinct paths.
-An optional LLM selects protocols and tools; it does not directly invent measured
-angles or grant itself new tool permissions.
+Accepted measurements come from landmark geometry. Repair revises the VLM estimate, not the landmark coordinates. Agreement alone does not establish accuracy.
 
-| Engineering decision | Implementation |
-| --- | --- |
-| Constrain tool selection | Protocol registry and validation of planner JSON; unsupported plans stop |
-| Make correction explicit | KEEP / REPAIR / STOP controller, repair budgets, and independent-proposal checks |
-| Preserve review decisions | Uploaded predictions require review; approvals, rejections, and corrected angles are recorded |
-| Trace execution | Per-tool records, persisted jobs, worker leases, and replay lineage |
-| Expose measurement tools | CLI, FastAPI dashboard, job API, and MCP |
-
-[Source map and execution paths](docs/ARCHITECTURE.md)
-
-## Evaluation
-
-Historical selective-repair study on **176 archived cases**, with three saved
-base-model predictions per case (**528 case-records**):
-
-| Measure | Result |
-| --- | ---: |
-| Case-records selected for intervention | 106/528 (20.1%) |
-| Mean angular error, before → after | 2.678° → 2.540° |
-| Mean error reduction among intervened records | 0.69° |
-
-These results evaluate an archived learned selection policy, not the default
-runtime controller or fresh end-to-end image inference. The mean is over case-level
-HVA/IMA errors. [Protocol, aggregate provenance, and failure analysis](docs/EVALUATION.md#historical-selective-repair-study)
-keep this study separate from software checks and live-model evaluation.
-
-## Quick start
-
-Requires Python 3.10+:
+## Getting Started
 
 ```bash
-git clone https://github.com/jianghongcheng/radmeasure-agent.git
-cd radmeasure-agent
-python -m venv .venv
-source .venv/bin/activate
-pip install -e .
-radmeasure --question "Measure HVA and IMA"
+pip install -e '.[api,prod,vision,inference]'
 ```
 
-The synthetic example returns HVA **15.0°**, IMA **8.0°**, verification results,
-and a tool trace. To enable a local LLM planner or image inference, follow
-[model setup](docs/USAGE.md#optional-llm-planner).
+Follow the [setup guide](docs/DUAL_PATH_WORKFLOW.md#configuration-and-local-execution) to configure the landmark checkpoint, comparison policy, and app access key. Start the API and worker in separate terminals:
 
 ```bash
-pip install -e '.[dev]'
-python -m pytest -q
-python scripts/evaluate_agent_decisions.py
+uvicorn radmeasure.api:create_app --factory --host 127.0.0.1 --port 8000
+radmeasure-worker
 ```
 
-**Stack:** Python, PyTorch image adapters, FastAPI, SQLite, MCP, Docker, GitHub Actions.
+Open **http://127.0.0.1:8000**, upload an image, and enter your selected provider's Model ID and API key. Checkpoints and credentials are not bundled.
 
-## Research use
+---
 
-Research prototype, not validated for diagnosis or patient care. Geometry checks
-do not establish anatomical correctness. Use synthetic or authorized research
-data; do not upload patient information to the demo. Weights and private
-per-image artifacts are not distributed. [Data policy](data/README.md).
+[Workflow & configuration](docs/DUAL_PATH_WORKFLOW.md) · [Controller source](src/radmeasure/measurement_graph.py) · [Provider adapters](src/radmeasure/provider_transport.py) · [Contributing](CONTRIBUTING.md)
 
-[Usage](docs/USAGE.md) · [Evaluation](docs/EVALUATION.md) · [Contributing](CONTRIBUTING.md) · [MIT license](LICENSE)
+*Research prototype; not validated for clinical use.*

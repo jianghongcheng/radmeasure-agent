@@ -36,3 +36,15 @@ def test_present_replay_artifact_is_registered(tmp_path, monkeypatch):
     monkeypatch.setattr(inference_api, "ModelRegistry", lambda values: values)
     inference_api.create_registry()
     assert seen == [artifact]
+
+
+def test_landmark_detector_does_not_require_repair_weights(tmp_path, monkeypatch):
+    monkeypatch.setenv("RADMEASURE_DATA_ROOT", str(tmp_path))
+    monkeypatch.setenv("RADMEASURE_LANDMARK_CHECKPOINT", str(tmp_path / "landmarks.pt"))
+    monkeypatch.delenv("RADMEASURE_RESNET_CHECKPOINT", raising=False)
+    monkeypatch.delenv("RADMEASURE_REPAIR_CHECKPOINT", raising=False)
+    calls = []
+    monkeypatch.setattr(inference_api, "IndependentGeometryRepairAdapter", lambda *args: calls.append(args) or object())
+    monkeypatch.setattr(inference_api, "ModelRegistry", lambda adapters: adapters)
+    assert len(inference_api.create_registry()) == 1
+    assert calls[0][:2] == (tmp_path / "landmarks.pt", None)

@@ -18,7 +18,7 @@ from .security import ApiKeyAuthorizer, Principal
 
 def create_app():
     try:
-        from fastapi import FastAPI, File, Header, HTTPException, Request, UploadFile
+        from fastapi import FastAPI, File, Form, Header, HTTPException, Request, UploadFile
         from fastapi.responses import HTMLResponse, PlainTextResponse
         from pydantic import BaseModel, Field
     except ImportError as exc:  # pragma: no cover
@@ -152,21 +152,40 @@ def create_app():
         )
         return {"job": job.to_dict(), "created": created}
 
+    @app.get("/v1/measurement-apis")
+    async def measurement_apis() -> dict:
+        from .model_profiles import public_profiles
+        return {"apis": public_profiles()}
+
     @app.post("/v1/uploads", status_code=202)
     async def upload_radiograph(
         request: Request,
         file: UploadFile = File(),
+        question: str = Form(default="Measure HVA and IMA.", min_length=1, max_length=4000),
+        protocols: str = Form(default="HVA,IMA"),
+        api_profile: str = Form(default="default", max_length=128),
+        model: str = Form(default="", max_length=128),
+        provider_key: str = Form(default="", max_length=4096),
         idempotency_key: str = Header(min_length=1, max_length=256),
         x_api_key: str | None = Header(default=None),
     ) -> dict:
         principal = authorize(x_api_key, "operator")
         content = await file.read(artifacts.max_bytes + 1)
         try:
+            from .model_profiles import profiles
+            if api_profile not in profiles():
+                raise ValueError("Unknown measurement API")
+            selected_protocols = [name.strip() for name in protocols.split(",")]
+            if not selected_protocols or len(set(selected_protocols)) != len(selected_protocols) or any(name not in {"HVA", "IMA"} for name in selected_protocols):
+                raise ValueError("Select HVA, IMA, or HVA,IMA")
             content, removed = sanitize_upload(content, file.content_type or "")
             artifact, stored = artifacts.put(content, file.content_type or "")
+            if model or provider_key:
+                from .model_profiles import save_request_profile
+                api_profile = save_request_profile(api_profile, model, provider_key)
             job, created = jobs.submit(
                 "uploaded_radiograph", {
-                    "artifact": artifact.__dict__, "_trace_id": request.state.trace_id,
+                    "artifact": artifact.__dict__, "question": question, "protocols": selected_protocols, "api_profile": api_profile, "_trace_id": request.state.trace_id,
                     "_submitted_by": principal.name, "deidentification": {
                         "applied": file.content_type == "application/dicom",
                         "removed_fields": removed,
@@ -264,11 +283,19 @@ def create_app():
     async def review_job(job_id: str, payload: ReviewPayload,
                          x_api_key: str | None = Header(default=None)) -> dict:
         principal = authorize(x_api_key, "admin")
+        job = jobs.get(job_id)
+        if job is None:
+            raise HTTPException(status_code=404, detail="job not found")
+        dual = (job.result or {}).get("provenance", {}).get("mode") == "dual_path_langgraph"
+        expected = set(job.payload.get("protocols", ["HVA", "IMA"])) if dual else {"HVA", "IMA"}
+        if dual and payload.decision == "approve" and payload.corrected_measurements is None:
+            raise HTTPException(status_code=422, detail="Provide reviewed measurements to approve a stopped case")
         if payload.corrected_measurements is not None:
-            if set(payload.corrected_measurements) != {"HVA", "IMA"}:
-                raise HTTPException(status_code=422, detail="corrected measurements must contain HVA and IMA")
-            if any(not -20 <= value <= 100 for value in payload.corrected_measurements.values()):
-                raise HTTPException(status_code=422, detail="corrected measurement outside safety bounds")
+            if set(payload.corrected_measurements) != expected:
+                raise HTTPException(status_code=422, detail="corrected measurements must match requested protocols")
+            low, high = (0, 90) if dual else (-20, 100)
+            if any(not low <= value <= high for value in payload.corrected_measurements.values()):
+                raise HTTPException(status_code=422, detail="corrected measurement outside protocol bounds")
         try:
             reviewed = jobs.review(job_id, principal.name, payload.decision,
                                    payload.corrected_measurements, payload.notes)

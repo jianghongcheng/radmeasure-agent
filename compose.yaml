@@ -53,7 +53,19 @@ services:
   api:
     build: .
     environment:
-      RADMEASURE_EVAL_REPLAY: "1"
+      RADMEASURE_EVAL_REPLAY: "0"
+      RADMEASURE_DEMO_MODE: "1"
+      RADMEASURE_PROVIDER_CREDENTIAL_DIR: /credentials
+      RADMEASURE_VLM_PROFILES: ${RADMEASURE_VLM_PROFILES:-}
+      RADMEASURE_VLM_URL: ${RADMEASURE_VLM_URL:-}
+      RADMEASURE_VLM_MODEL: ${RADMEASURE_VLM_MODEL:-}
+      RADMEASURE_VLM_API_KEY: ${RADMEASURE_VLM_API_KEY:-}
+      OPENAI_MODEL: ${OPENAI_MODEL:-}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      ANTHROPIC_MODEL: ${ANTHROPIC_MODEL:-}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      GEMINI_MODEL: ${GEMINI_MODEL:-}
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
       RADMEASURE_DATABASE_URL: postgresql://radmeasure:radmeasure-local@postgres:5432/radmeasure
       RADMEASURE_S3_ENDPOINT: http://minio:9000
       RADMEASURE_S3_BUCKET: radmeasure-artifacts
@@ -63,6 +75,8 @@ services:
       RADMEASURE_ORTHANC_URL: http://orthanc:8042
       RADMEASURE_ORTHANC_USERNAME: radmeasure
       RADMEASURE_ORTHANC_PASSWORD: radmeasure-local
+    volumes:
+      - radmeasure-provider-credentials:/credentials
     ports:
       - "127.0.0.1:8000:8000"
     depends_on:
@@ -79,17 +93,13 @@ services:
     command: ["uvicorn", "radmeasure.inference_api:create_app", "--factory", "--host", "0.0.0.0", "--port", "8100"]
     environment:
       RADMEASURE_INFERENCE_TOKEN: inference-local-secret
-      RADMEASURE_RESNET_CHECKPOINT: /models/best_resnet.pt
       RADMEASURE_LANDMARK_CHECKPOINT: /models/hrnet_lm.pt
-      RADMEASURE_REPAIR_CHECKPOINT: /models/repair_mlp_verifier.pt
       RADMEASURE_MODEL_DEVICE: cpu
       RADMEASURE_S3_ENDPOINT: http://minio:9000
       RADMEASURE_S3_ACCESS_KEY: radmeasure-local
       RADMEASURE_S3_SECRET_KEY: radmeasure-local-secret
     volumes:
-      - "${RADMEASURE_RESNET_CHECKPOINT:-./models/best_resnet.pt}:/models/best_resnet.pt:ro"
       - "${RADMEASURE_LANDMARK_CHECKPOINT:-./models/hrnet_lm.pt}:/models/hrnet_lm.pt:ro"
-      - "${RADMEASURE_REPAIR_CHECKPOINT:-./models/repair_mlp_verifier.pt}:/models/repair_mlp_verifier.pt:ro"
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8100/health')"]
       interval: 5s
@@ -101,11 +111,28 @@ services:
     build: .
     command: ["radmeasure-worker", "--poll-seconds", "0.25"]
     environment:
-      RADMEASURE_EVAL_REPLAY: "1"
+      RADMEASURE_EVAL_REPLAY: "0"
+      RADMEASURE_DEMO_MODE: "1"
+      RADMEASURE_PROVIDER_CREDENTIAL_DIR: /credentials
+      RADMEASURE_VLM_PROFILES: ${RADMEASURE_VLM_PROFILES:-}
+      OPENAI_MODEL: ${OPENAI_MODEL:-}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      ANTHROPIC_MODEL: ${ANTHROPIC_MODEL:-}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      GEMINI_MODEL: ${GEMINI_MODEL:-}
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
       RADMEASURE_DATABASE_URL: postgresql://radmeasure:radmeasure-local@postgres:5432/radmeasure
       RADMEASURE_INFERENCE_URL: http://inference:8100
       RADMEASURE_INFERENCE_TOKEN: inference-local-secret
-      RADMEASURE_REPAIR_MODEL_ID: hvangle-hrnet-repair
+      RADMEASURE_VLM_URL: ${RADMEASURE_VLM_URL:-}
+      RADMEASURE_VLM_MODEL: ${RADMEASURE_VLM_MODEL:-}
+      RADMEASURE_VLM_API_KEY: ${RADMEASURE_VLM_API_KEY:-}
+      RADMEASURE_DISCREPANCY_POLICY: ${RADMEASURE_DISCREPANCY_POLICY:-}
+      RADMEASURE_S3_ENDPOINT: http://minio:9000
+      RADMEASURE_S3_ACCESS_KEY: radmeasure-local
+      RADMEASURE_S3_SECRET_KEY: radmeasure-local-secret
+    volumes:
+      - radmeasure-provider-credentials:/credentials
     depends_on:
       postgres:
         condition: service_healthy
@@ -118,6 +145,7 @@ services:
       replicas: 2
 
 volumes:
+  radmeasure-provider-credentials:
   radmeasure-postgres:
   radmeasure-minio:
   radmeasure-orthanc:

@@ -84,7 +84,8 @@ def test_non_medical_job_is_rejected_without_invoking_tools(tmp_path):
     assert failed.result is None
 
 
-def test_live_invalid_numbers_are_reviewable_and_json_safe(tmp_path):
+def test_live_invalid_numbers_are_reviewable_and_json_safe(tmp_path, monkeypatch):
+    monkeypatch.setenv("RADMEASURE_MEASUREMENT_WORKFLOW", "legacy")
     class Client:
         def predict_artifact(self, **kwargs):
             return {"measurements": {"HVA": float("nan"), "IMA": 9.0},
@@ -101,6 +102,7 @@ def test_live_invalid_numbers_are_reviewable_and_json_safe(tmp_path):
 
 
 def test_valid_live_repair_still_requires_review(tmp_path, monkeypatch):
+    monkeypatch.setenv("RADMEASURE_MEASUREMENT_WORKFLOW", "legacy")
     monkeypatch.delenv("RADMEASURE_REPAIR_MODEL_ID", raising=False)
 
     class Client:

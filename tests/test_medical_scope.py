@@ -25,7 +25,10 @@ def test_api_rejects_sql_payload(tmp_path, monkeypatch):
 
 def test_dashboard_does_not_present_historical_accuracy_as_live():
     html = render_dashboard()
-    assert "HVA + IMA" in html
-    assert "Research only" in html
+    assert "Measure angles" in html
+    assert "GPT (OpenAI)" in html
+    assert "Claude (Anthropic)" in html
+    assert "Gemini (Google)" in html
+    assert "Research demo" in html
     assert "3.56°" not in html
     assert "persisted evaluation cases" not in html

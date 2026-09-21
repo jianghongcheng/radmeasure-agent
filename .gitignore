@@ -54,3 +54,5 @@ docs/results/*
 *.pth
 *.ckpt
 *.safetensors
+
+!docs/DUAL_PATH_WORKFLOW.md

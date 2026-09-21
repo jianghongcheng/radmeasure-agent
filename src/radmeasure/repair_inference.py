@@ -28,7 +28,7 @@ def execute_geometry(points, dimensions):
 class IndependentGeometryRepairAdapter:
     """HRNet landmark proposal followed by a separately trained repair/verifier."""
 
-    def __init__(self, detector_checkpoint: Path, repair_checkpoint: Path,
+    def __init__(self, detector_checkpoint: Path, repair_checkpoint: Path | None,
                  device: str | None = None) -> None:
         import torch
         from torch import nn
@@ -114,18 +114,21 @@ class IndependentGeometryRepairAdapter:
         self._repair = RepairMLP().to(self._device)
         self._verifier = VerifierMLP().to(self._device)
         self._detector.load_state_dict(torch.load(detector_checkpoint, map_location=self._device, weights_only=True))
-        checkpoint = torch.load(repair_checkpoint, map_location=self._device, weights_only=True)
-        self._repair.load_state_dict(checkpoint["repair_state_dict"])
-        self._verifier.load_state_dict(checkpoint["verifier_state_dict"])
-        self._threshold = float(checkpoint["threshold"])
+        self._landmarks_only = repair_checkpoint is None
+        self._threshold = None
+        if repair_checkpoint is not None:
+            checkpoint = torch.load(repair_checkpoint, map_location=self._device, weights_only=True)
+            self._repair.load_state_dict(checkpoint["repair_state_dict"])
+            self._verifier.load_state_dict(checkpoint["verifier_state_dict"])
+            self._threshold = float(checkpoint["threshold"])
         self._detector.eval(); self._repair.eval(); self._verifier.eval()
         self._info = ModelInfo(
-            model_id="hvangle-hrnet-repair", version="hrnet-repair-seed42-v1",
+            model_id="hvangle-landmarks" if self._landmarks_only else "hvangle-hrnet-repair", version="hrnet-landmarks-v1" if self._landmarks_only else "hrnet-repair-seed42-v1",
             backend=f"pytorch_{self._device.type}",
-            artifact_sha256=f"detector:{sha256_file(detector_checkpoint)};repair:{sha256_file(repair_checkpoint)}",
+            artifact_sha256=f"detector:{sha256_file(detector_checkpoint)};repair:{sha256_file(repair_checkpoint) if repair_checkpoint else 'none'}",
             measurements=["HVA", "IMA"], accepted_input="jpeg_png_or_single_frame_dicom_bytes",
             live_image_inference=True, ready=True,
-            evaluation={
+            evaluation={"role": "landmark_primary_geometry", "research_only": True, "new_workflow_evaluated": False} if self._landmarks_only else {
                 "dataset": "HVAngleEst patient-disjoint test split", "n": 243,
                 "role": "independent_repair_proposal_not_primary_measurement_model",
                 "verifier_threshold": self._threshold, "research_only": True,
@@ -146,7 +149,7 @@ class IndependentGeometryRepairAdapter:
         return torch.stack([x, y], -1).reshape(batch, landmarks, 2)
 
     def predict_bytes(self, image_id: str, content: bytes,
-                      media_type: str = "image/jpeg") -> InferenceOutput:
+                      media_type: str = "image/jpeg") -> dict:
         import numpy as np
         torch = self._torch
         image, quality, metadata = decode_medical_image(content, media_type)
@@ -158,6 +161,15 @@ class IndependentGeometryRepairAdapter:
         with torch.inference_mode():
             points = self._decode_heatmaps(self._detector(inputs))
             initial = execute_geometry(points, dimensions)
+            if self._landmarks_only:
+                pixels = (points * dimensions[:, None, :])[0].cpu().tolist()
+                return {
+                    "image_id": image_id, "image_size": [width, height],
+                    "axes": {"great_toe_axis": pixels[0:2], "first_metatarsal_axis": pixels[2:4],
+                             "second_metatarsal_axis": pixels[4:6]},
+                    "measurements": dict(zip(("HVA", "IMA"), initial[0].cpu().tolist())),
+                    "quality": quality.to_dict(), "image_metadata": metadata, "model": self.info.to_dict(),
+                }
             delta = self._repair(points, dimensions)
             proposed_points = (points + delta).clamp(0, 1)
             proposed = execute_geometry(proposed_points, dimensions)

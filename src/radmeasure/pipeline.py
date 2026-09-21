@@ -26,7 +26,9 @@ class JobPipeline:
     def __init__(self, tools: RadMeasureTools,
                  inference_client: InferenceClient | None = None,
                  planner: ConstrainedMeasurementPlanner | None = None,
-                 controller: MeasurementAgentController | None = None) -> None:
+                 controller: MeasurementAgentController | None = None,
+                 measurement_workflow=None) -> None:
+        self.measurement_workflow = measurement_workflow
         self.tools = tools
         self.inference_client = inference_client
         registry = controller.registry if controller else ProtocolRegistry()
@@ -124,6 +126,36 @@ class JobPipeline:
             result["trace_id"] = job.payload.get("_trace_id")
             return self._finish(record, "needs_review" if review else "completed", result,
                                 agent.repair_attempts)
+        if job.job_type == "uploaded_radiograph" and os.environ.get("RADMEASURE_MEASUREMENT_WORKFLOW", "dual_path") != "legacy":
+            from .vision_measurement import graph_from_env
+            try:
+                workflow = self.measurement_workflow or graph_from_env(self.inference_client, job.payload.get("api_profile", "default"))
+            except (ValueError, TypeError, KeyError):
+                workflow = None
+            if workflow is None:
+                return PipelineOutcome("needs_review", {
+                    "measurements": {}, "artifact": job.payload["artifact"],
+                    "trace_id": job.payload.get("_trace_id"), "repair_attempts": 0,
+                    "execution_record": {"workflow": "dual_path_langgraph_v1",
+                        "decision": "STOP", "reason": "dual_path_models_or_policy_unavailable",
+                        "events": [{"step": "configuration", "decision": "STOP"}],
+                        "artifact_sha256": job.payload["artifact"].get("sha256"), "repair_attempts": 0},
+                    "routing": {"decision": "STOP", "reason": "dual_path_models_or_policy_unavailable"},
+                    "agent_trajectory": [{"step": "configuration", "decision": "STOP"}],
+                    "provenance": {"mode": "dual_path_langgraph", "clinical_use": False},
+                })
+            protocols = tuple(job.payload.get("protocols", ["HVA", "IMA"]))
+            result = workflow.run(job.payload["artifact"],
+                job.payload.get("question", "Measure HVA and IMA."), protocols)
+            result["artifact"] = job.payload["artifact"]
+            result["trace_id"] = job.payload.get("_trace_id")
+            result["execution_record"] = {
+                "workflow": "dual_path_langgraph_v1", "policy": result.get("policy"),
+                "events": result["agent_trajectory"], "decision": result["routing"]["decision"],
+                "repair_attempts": result["repair_attempts"],
+                "artifact_sha256": job.payload["artifact"]["sha256"],
+            }
+            return PipelineOutcome("completed" if result["routing"]["decision"] == "KEEP" else "needs_review", result)
         if job.job_type == "uploaded_radiograph":
             contract = MeasurementContract.from_registry(self.registry, ("HVA", "IMA"),
                                                          mandatory_review=True)

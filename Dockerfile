@@ -1,11 +1,11 @@
 FROM python:3.11-slim
 
-ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1 RADMEASURE_EVAL_REPLAY=1
+ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1 RADMEASURE_EVAL_REPLAY=0 RADMEASURE_DEMO_MODE=1
 WORKDIR /app
 COPY pyproject.toml README.md ./
 COPY src ./src
 COPY data ./data
-RUN pip install --no-cache-dir '.[api,prod]'
+RUN pip install --no-cache-dir '.[api,prod,vision]'
 EXPOSE 8000
 HEALTHCHECK --interval=15s --timeout=3s --start-period=5s --retries=3 CMD python -c "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health')"
 CMD ["uvicorn", "radmeasure.api:create_app", "--factory", "--host", "0.0.0.0", "--port", "8000"]

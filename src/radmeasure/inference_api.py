@@ -17,6 +17,9 @@ def create_registry() -> ModelRegistry:
         adapters.append(ResNet50AngleAdapter(Path(checkpoint), os.environ.get("RADMEASURE_MODEL_DEVICE")))
     landmark_checkpoint = os.environ.get("RADMEASURE_LANDMARK_CHECKPOINT")
     repair_checkpoint = os.environ.get("RADMEASURE_REPAIR_CHECKPOINT")
+    if landmark_checkpoint:
+        adapters.append(IndependentGeometryRepairAdapter(
+            Path(landmark_checkpoint), None, os.environ.get("RADMEASURE_MODEL_DEVICE")))
     if landmark_checkpoint and repair_checkpoint:
         adapters.append(IndependentGeometryRepairAdapter(
             Path(landmark_checkpoint), Path(repair_checkpoint), os.environ.get("RADMEASURE_MODEL_DEVICE")
@@ -24,7 +27,7 @@ def create_registry() -> ModelRegistry:
     if not adapters:
         raise ValueError(
             "No inference adapters configured. Set RADMEASURE_RESNET_CHECKPOINT, "
-            "both repair checkpoints, or provide a saved-prediction artifact."
+            "RADMEASURE_LANDMARK_CHECKPOINT, or provide a saved-prediction artifact."
         )
     return ModelRegistry(adapters)
 

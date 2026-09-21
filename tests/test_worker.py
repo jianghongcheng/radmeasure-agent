@@ -30,10 +30,11 @@ def test_uploaded_job_routes_to_human_review_without_fake_inference(tmp_path: Pa
     Worker(repository, JobPipeline(RadMeasureTools(DemoService()))).run_once()
     reviewed = repository.get(job.job_id)
     assert reviewed.status == "needs_review"
-    assert reviewed.result["routing"]["reason"] == "live_inference_adapter_unavailable"
+    assert reviewed.result["routing"]["reason"] == "dual_path_models_or_policy_unavailable"
 
 
-def test_uploaded_job_runs_live_model_and_preserves_review_gate(tmp_path: Path):
+def test_uploaded_job_runs_live_model_and_preserves_review_gate(tmp_path: Path, monkeypatch):
+    monkeypatch.setenv("RADMEASURE_MEASUREMENT_WORKFLOW", "legacy")
     class FakeLiveClient:
         def predict_artifact(self, image_id, artifact_uri, media_type="image/jpeg"):
             assert image_id == "abc"
@@ -60,6 +61,7 @@ def test_uploaded_job_runs_live_model_and_preserves_review_gate(tmp_path: Path):
 
 
 def test_uploaded_job_rejects_independent_repair_on_cross_model_disagreement(tmp_path: Path, monkeypatch):
+    monkeypatch.setenv("RADMEASURE_MEASUREMENT_WORKFLOW", "legacy")
     monkeypatch.setenv("RADMEASURE_REPAIR_MODEL_ID", "hvangle-hrnet-repair")
 
     class FakeTwoModelClient:
