@@ -1,39 +1,46 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1040" height="444" viewBox="0 0 1040 444" role="img" aria-labelledby="title desc">
-<title id="title">RadMeasure architecture</title><desc id="desc">An uploaded radiograph goes to an HRNet landmark model and an independent vision-language model. A controller checks geometry and disagreement, then keeps the measurement, rechecks the VLM within a repair budget, or routes to human review.</desc>
-<defs><marker id="arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0 0L8 4L0 8" fill="none" stroke="#70849c" stroke-width="1.4"/></marker></defs>
-<rect width="1040" height="444" rx="20" fill="#0d1729"/>
-<g font-family="Arial,Helvetica,sans-serif">
-<text x="36" y="39" fill="#8da9c7" font-size="12" letter-spacing="2">RADMEASURE / WORKFLOW</text>
-<text x="36" y="71" fill="#f2f6fc" font-size="23" font-weight="700">Two estimates. One controlled decision.</text>
-<g fill="none" stroke="#70849c" stroke-width="2" marker-end="url(#arrow)">
-<path d="M212 214H239V153H266"/><path d="M212 214H239V277H266"/>
-<path d="M484 153H512V214H544"/><path d="M484 277H512V214H544"/>
-<path d="M762 214H788V137H816"/><path d="M762 214H816"/><path d="M762 214H788V291H816"/>
-<path d="M910 247V382H375V317"/>
+<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="520" viewBox="0 0 1080 520" role="img" aria-labelledby="title desc">
+<title id="title">RadMeasure architecture</title>
+<desc id="desc">An image goes to an HRNet landmark detector and an independent vision-language model. A LangGraph controller checks geometry and disagreement, then keeps the measurement, rechecks the VLM within a repair budget, or routes to human review.</desc>
+<defs><marker id="arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0 0L8 4L0 8" fill="none" stroke="#8198b2" stroke-width="1.4"/></marker></defs>
+<rect width="1080" height="520" rx="20" fill="#0d1729"/>
+<g font-family="Arial,Helvetica,sans-serif" text-anchor="middle">
+<text x="32" y="36" text-anchor="start" fill="#8da9c7" font-size="12" letter-spacing="2">RADMEASURE / WORKFLOW</text>
+<text x="32" y="70" text-anchor="start" fill="#f2f6fc" font-size="23" font-weight="700">Two estimates. One controlled decision.</text>
+<g fill="none" stroke="#8198b2" stroke-width="2" marker-end="url(#arrow)">
+<path d="M192 255H216V174H242"/><path d="M192 255H216V326H242"/>
+<path d="M482 174H507V255H532"/><path d="M482 326H507V255H532"/>
+<path d="M772 255H796V145H822"/><path d="M772 255H822"/><path d="M772 255H796V375H822"/>
+<path d="M1042 255H1060V460H362V376"/>
 </g>
-<rect x="36" y="174" width="176" height="80" rx="12" fill="#192b43" stroke="#3b5574"/>
-<text x="124" y="207" text-anchor="middle" fill="#f2f6fc" font-size="17" font-weight="700">Radiograph</text>
-<text x="124" y="230" text-anchor="middle" fill="#a6bbd2" font-size="13">Image + request</text>
-<rect x="266" y="113" width="218" height="80" rx="12" fill="#172c43" stroke="#3b5574"/>
-<text x="375" y="146" text-anchor="middle" fill="#f2f6fc" font-size="17" font-weight="700">HRNet landmarks</text>
-<text x="375" y="169" text-anchor="middle" fill="#a6bbd2" font-size="13">Coordinates → geometric angles</text>
-<rect x="266" y="237" width="218" height="80" rx="12" fill="#172c43" stroke="#3b5574"/>
-<text x="375" y="270" text-anchor="middle" fill="#f2f6fc" font-size="17" font-weight="700">GPT · Claude · Gemini</text>
-<text x="375" y="293" text-anchor="middle" fill="#a6bbd2" font-size="13">Independent visual estimate</text>
-<rect x="544" y="158" width="218" height="112" rx="12" fill="#16323a" stroke="#45b9ac"/>
-<text x="653" y="191" text-anchor="middle" fill="#effffc" font-size="18" font-weight="700">LangGraph controller</text>
-<text x="653" y="217" text-anchor="middle" fill="#abd9d0" font-size="13">Geometry + disagreement checks</text>
-<text x="653" y="241" text-anchor="middle" fill="#abd9d0" font-size="13">Registered tools · repair budget</text>
-<rect x="816" y="104" width="188" height="66" rx="10" fill="#173831" stroke="#3a8c70"/>
-<text x="910" y="130" text-anchor="middle" fill="#96e2b9" font-size="15" font-weight="700">KEEP</text>
-<text x="910" y="152" text-anchor="middle" fill="#c5dbd4" font-size="12">Checks pass · small disagreement</text>
-<rect x="816" y="181" width="188" height="66" rx="10" fill="#393221" stroke="#a98742"/>
-<text x="910" y="207" text-anchor="middle" fill="#f3d18b" font-size="15" font-weight="700">REPAIR</text>
-<text x="910" y="229" text-anchor="middle" fill="#e0d5bb" font-size="12">Moderate disagreement · budget left</text>
-<rect x="816" y="258" width="188" height="66" rx="10" fill="#392733" stroke="#9e6075"/>
-<text x="910" y="284" text-anchor="middle" fill="#efb2c3" font-size="15" font-weight="700">STOP → HUMAN REVIEW</text>
-<text x="910" y="306" text-anchor="middle" fill="#dec6ce" font-size="12">Large gap · failed check · no budget</text>
-<rect x="484" y="370" width="327" height="23" rx="6" fill="#0d1729"/>
-<text x="647" y="386" text-anchor="middle" fill="#b7c9df" font-size="13">VLM rechecks the image, then returns to verification</text>
-<text x="36" y="421" fill="#829ab5" font-size="12">Protocol-defined HVA / IMA measurement · Research prototype</text>
+<rect x="32" y="210" width="160" height="90" rx="12" fill="#192b43" stroke="#3b5574"/>
+<text x="112" y="246" fill="#f2f6fc" font-size="17" font-weight="700">Radiograph</text>
+<text x="112" y="273" fill="#a6bbd2" font-size="14">Image + request</text>
+<rect x="242" y="124" width="240" height="100" rx="12" fill="#172c43" stroke="#3b5574"/>
+<text x="362" y="155" fill="#f2f6fc" font-size="17" font-weight="700">HRNet landmarks</text>
+<text x="362" y="183" fill="#a6bbd2" font-size="14">Coordinates</text>
+<text x="362" y="205" fill="#a6bbd2" font-size="14">→ geometric angles</text>
+<rect x="242" y="276" width="240" height="100" rx="12" fill="#172c43" stroke="#3b5574"/>
+<text x="362" y="308" fill="#f2f6fc" font-size="17" font-weight="700">GPT · Claude · Gemini</text>
+<text x="362" y="337" fill="#a6bbd2" font-size="14">Independent</text>
+<text x="362" y="359" fill="#a6bbd2" font-size="14">visual angle estimate</text>
+<rect x="532" y="183" width="240" height="144" rx="12" fill="#16323a" stroke="#45b9ac"/>
+<text x="652" y="214" fill="#effffc" font-size="17" font-weight="700">LangGraph controller</text>
+<text x="652" y="245" fill="#abd9d0" font-size="14">Check geometry</text>
+<text x="652" y="268" fill="#abd9d0" font-size="14">Compare angles</text>
+<text x="652" y="299" fill="#abd9d0" font-size="13">Allowed tools · repair budget</text>
+<rect x="822" y="100" width="220" height="90" rx="12" fill="#173831" stroke="#3a8c70"/>
+<text x="932" y="128" fill="#96e2b9" font-size="16" font-weight="700">KEEP</text>
+<text x="932" y="153" fill="#c5dbd4" font-size="14">Checks pass</text>
+<text x="932" y="175" fill="#c5dbd4" font-size="14">Small disagreement</text>
+<rect x="822" y="210" width="220" height="90" rx="12" fill="#393221" stroke="#a98742"/>
+<text x="932" y="238" fill="#f3d18b" font-size="16" font-weight="700">REPAIR</text>
+<text x="932" y="263" fill="#e0d5bb" font-size="14">Moderate disagreement</text>
+<text x="932" y="285" fill="#e0d5bb" font-size="14">Budget remaining</text>
+<rect x="822" y="320" width="220" height="110" rx="12" fill="#392733" stroke="#9e6075"/>
+<text x="932" y="348" fill="#efb2c3" font-size="16" font-weight="700">STOP</text>
+<text x="932" y="372" fill="#efb2c3" font-size="14" font-weight="700">Human review</text>
+<text x="932" y="397" fill="#dec6ce" font-size="13">Large gap / failed check</text>
+<text x="932" y="417" fill="#dec6ce" font-size="13">or budget exhausted</text>
+<text x="635" y="449" fill="#b7c9df" font-size="14">Recheck image → verify again</text>
+<text x="32" y="501" text-anchor="start" fill="#829ab5" font-size="12">Protocol-defined HVA / IMA measurement · Research prototype</text>
 </g></svg>
